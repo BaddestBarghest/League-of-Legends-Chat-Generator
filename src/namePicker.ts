@@ -105,14 +105,17 @@ export function namePicker(input: HTMLInputElement, getNames: () => string[], op
     close();
   };
 
-  const suggest = () => {
+  // Opening a field (fromOpen) shows the whole list when it's empty or holds
+  // a known name, with that name highlighted. Typing filters it.
+  const suggest = (fromOpen = false) => {
     const names = getNames();
-    const browsing = opts.showAllWhenEmpty && !input.value.trim();
+    const known = names.indexOf(input.value);
+    const browsing = opts.showAllWhenEmpty && (!input.value.trim() || (fromOpen && known >= 0));
     // Icon lists are easy to scan, so they show more at once.
     matches = browsing ? names : fuzzySearch(input.value, names, opts.icons ? 30 : 8);
     // Don't suggest when it's already spelled right.
-    if (matches.length === 1 && matches[0] === input.value) matches = [];
-    active = 0;
+    if (!browsing && matches.length === 1 && matches[0] === input.value) matches = [];
+    active = browsing && known >= 0 ? known : 0;
     draw();
   };
 
@@ -122,9 +125,13 @@ export function namePicker(input: HTMLInputElement, getNames: () => string[], op
   });
   const open = async () => {
     await opts.onFocus?.();
-    if (opts.showAllWhenEmpty && document.activeElement === input && list.hidden) suggest();
+    if (opts.showAllWhenEmpty && document.activeElement === input && list.hidden) suggest(true);
   };
-  input.addEventListener("focus", () => void open());
+  // Selecting the text means typing replaces it straight away.
+  input.addEventListener("focus", () => {
+    if (opts.showAllWhenEmpty) input.select();
+    void open();
+  });
   // Clicking a field that's already focused opens the list again.
   input.addEventListener("click", () => void open());
 
@@ -132,7 +139,7 @@ export function namePicker(input: HTMLInputElement, getNames: () => string[], op
     if (list.hidden) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        suggest();
+        suggest(true);
       }
       return;
     }
@@ -152,7 +159,8 @@ export function namePicker(input: HTMLInputElement, getNames: () => string[], op
 }
 
 // Players already show a portrait beside the field, so no icon inside it.
-export const championPicker = (input: HTMLInputElement) => namePicker(input, getChampions, { icons: "champion", fieldIcon: false });
+export const championPicker = (input: HTMLInputElement) =>
+  namePicker(input, getChampions, { icons: "champion", fieldIcon: false, showAllWhenEmpty: true });
 export const itemPicker = (input: HTMLInputElement) => namePicker(input, getItems, { icons: "item", showAllWhenEmpty: true });
 export const trinketPicker = (input: HTMLInputElement) => namePicker(input, getTrinkets, { icons: "item", showAllWhenEmpty: true });
 export const spellPicker = (input: HTMLInputElement) => namePicker(input, getSpells, { icons: "spell", showAllWhenEmpty: true });
