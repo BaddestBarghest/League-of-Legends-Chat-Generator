@@ -1,5 +1,5 @@
 import type { Channel, ChatLine, LineKind, Team } from "./types";
-import { championPicker } from "./championPicker";
+import { championPicker } from "./namePicker";
 import { $, el } from "./dom";
 import { changed, makeLine, newId, onChange, state } from "./state";
 import { findTimeIssues, fixTimes } from "./timeCheck";

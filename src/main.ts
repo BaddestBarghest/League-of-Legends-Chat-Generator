@@ -1,6 +1,7 @@
 import "./fonts";
 import "./style.css";
 import { refreshChampions } from "./champions";
+import { loadGameData } from "./gameData";
 import { mountEditor } from "./editor";
 import { mountExporters } from "./exporters";
 import { mountPingBuilder } from "./pingBuilder";
@@ -10,6 +11,7 @@ import { mountStyleControls } from "./styleControls";
 
 restoreAutosave();
 void refreshChampions();
+void loadGameData();
 mountEditor();
 mountPingBuilder();
 mountStyleControls();

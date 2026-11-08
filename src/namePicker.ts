@@ -4,11 +4,17 @@ import { fuzzySearch } from "./fuzzy";
 
 let uid = 0;
 
-// Wraps a text input with a champion suggestion list. Put the returned
-// element in the page where the input would have gone. Picking a name
-// fires a normal input event, so existing listeners still see the change.
-export function championPicker(input: HTMLInputElement): HTMLElement {
-  const listId = `champ-list-${uid++}`;
+// Wraps a text input with a suggestion list drawn from getNames. Put the
+// returned element where the input would have gone. Picking a name fires a
+// normal input event, so existing listeners still see the change.
+// With showAllWhenEmpty, an empty field lists everything on focus. Good for
+// short lists like one champion's five abilities.
+export function namePicker(
+  input: HTMLInputElement,
+  getNames: () => string[],
+  opts: { showAllWhenEmpty?: boolean; onFocus?: () => Promise<void> } = {},
+): HTMLElement {
+  const listId = `name-list-${uid++}`;
   const list = el("ul", { className: "cb-list", id: listId, role: "listbox", hidden: true });
   const wrap = el("span", { className: `cb ${input.className}` }, [input, list]);
   input.className = "";
@@ -56,13 +62,21 @@ export function championPicker(input: HTMLInputElement): HTMLElement {
     close();
   };
 
-  input.addEventListener("input", () => {
-    if (picking) return;
-    matches = fuzzySearch(input.value, getChampions());
+  const suggest = () => {
+    const names = getNames();
+    matches = opts.showAllWhenEmpty && !input.value.trim() ? names.slice(0, 12) : fuzzySearch(input.value, names);
     // Don't suggest when it's already spelled right.
     if (matches.length === 1 && matches[0] === input.value) matches = [];
     active = 0;
     draw();
+  };
+
+  input.addEventListener("input", () => {
+    if (!picking) suggest();
+  });
+  input.addEventListener("focus", async () => {
+    await opts.onFocus?.();
+    if (opts.showAllWhenEmpty && document.activeElement === input) suggest();
   });
 
   input.addEventListener("keydown", (e) => {
@@ -83,3 +97,5 @@ export function championPicker(input: HTMLInputElement): HTMLElement {
   input.addEventListener("blur", close);
   return wrap;
 }
+
+export const championPicker = (input: HTMLInputElement) => namePicker(input, getChampions);
