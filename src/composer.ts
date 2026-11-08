@@ -63,8 +63,29 @@ export function mountComposer(): void {
   };
   $<HTMLButtonElement>("#cmp-add").addEventListener("click", addChat);
 
-  // The [Team]/[All] menu only applies to players.
-  const syncTag = () => (tag.hidden = from.value === "system");
+  // What each speaker can send. Players chat or ping. The system only makes
+  // the game's announcements, so it gets no chat box, tag or player pings.
+  const isSystem = () => from.value === "system";
+  const allowed = () => PINGS.filter((p) => (p.kind === "system") === isSystem());
+  let mode: "chat" | "ping" = "chat";
+  const showMode = () => {
+    const m = isSystem() ? "ping" : mode;
+    $<HTMLElement>("#cmp-mode").hidden = isSystem();
+    $<HTMLElement>("#cmp-chat").hidden = m !== "chat";
+    $<HTMLElement>("#cmp-ping").hidden = m !== "ping";
+    modes.forEach((x) => x.classList.toggle("on", x.dataset.mode === mode));
+    addPing.textContent = isSystem() ? "Add message" : "Add ping";
+    pingSearch.placeholder = isSystem() ? "Search messages, e.g. ace or shut down" : "Search pings, e.g. missing or flash";
+  };
+  const syncTag = () => {
+    // Keep the chosen ping if this speaker can send it, otherwise start over.
+    if (!allowed().some((p) => p.id === pingId)) {
+      pingId = allowed()[0].id;
+      pingSearch.value = current().label;
+      renderParams();
+    }
+    showMode();
+  };
   from.addEventListener("change", syncTag);
   message.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -79,9 +100,8 @@ export function mountComposer(): void {
   const addPing = $<HTMLButtonElement>("#btn-add-ping");
   modes.forEach((b) =>
     b.addEventListener("click", () => {
-      modes.forEach((x) => x.classList.toggle("on", x === b));
-      $<HTMLElement>("#cmp-chat").hidden = b.dataset.mode !== "chat";
-      $<HTMLElement>("#cmp-ping").hidden = b.dataset.mode !== "ping";
+      mode = b.dataset.mode as typeof mode;
+      showMode();
     }),
   );
 
@@ -95,10 +115,10 @@ export function mountComposer(): void {
   const slot = pingSearch.nextSibling;
   const row = pingSearch.parentElement!;
   const searchText = Object.fromEntries(PINGS.map((p) => [p.label, [pingText(p), p.group]]));
-  row.insertBefore(namePicker(pingSearch, () => PINGS.map((p) => p.label), { showAllWhenEmpty: true, limit: 12, searchText }), slot);
+  row.insertBefore(namePicker(pingSearch, () => allowed().map((p) => p.label), { showAllWhenEmpty: true, limit: 12, searchText }), slot);
   // Leaving without a choice puts the current ping back.
   pingSearch.addEventListener("input", () => {
-    const found = PINGS.find((p) => p.label === pingSearch.value);
+    const found = allowed().find((p) => p.label === pingSearch.value);
     if (found && found.id !== pingId) {
       pingId = found.id;
       renderParams();
