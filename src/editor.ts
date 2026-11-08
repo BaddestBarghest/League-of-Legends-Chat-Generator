@@ -1,4 +1,5 @@
 import type { Channel, ChatLine, LineKind, Team } from "./types";
+import { championPicker } from "./championPicker";
 import { $, el } from "./dom";
 import { changed, makeLine, newId, onChange, state } from "./state";
 
@@ -100,7 +101,7 @@ function lineCard(l: ChatLine, index: number): HTMLLIElement {
 
   li.append(
     el("div", { className: "row" }, [time, team, channel, kind, tools]),
-    el("div", { className: "row" }, [name, champ]),
+    el("div", { className: "row" }, [name, championPicker(champ)]),
     el("div", { className: "row" }, [body]),
   );
   return li;

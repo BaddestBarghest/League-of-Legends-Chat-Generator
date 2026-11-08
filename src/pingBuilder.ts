@@ -1,3 +1,4 @@
+import { championPicker } from "./championPicker";
 import { $, el } from "./dom";
 import { addLine } from "./editor";
 import { PARAMS, PINGS, pingToLine, type ParamKey } from "./pings";
@@ -31,7 +32,8 @@ export function mountPingBuilder(): void {
         const input = el("input", { type: "text", value: values[key] ?? "", placeholder: def.placeholder });
         if (def.options) input.setAttribute("list", `dl-${key}`);
         input.addEventListener("input", () => (values[key] = input.value));
-        return el("label", {}, [def.label, input]);
+        const isChamp = key === "enemy" || key === "ally";
+        return el("label", {}, [def.label, isChamp ? championPicker(input) : input]);
       }),
     );
   };
