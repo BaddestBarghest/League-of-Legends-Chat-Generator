@@ -83,7 +83,7 @@ const sampleLines = SAMPLE.map(makeLine);
 
 // Everything the app edits lives here. Call changed() after any edit.
 export function defaultBanner(): Banner {
-  return { result: "victory", text: "", plaque: true };
+  return { result: "victory", text: "", background: "plaque", size: 1, spacing: 0, imageSize: 1 };
 }
 
 export const state = {

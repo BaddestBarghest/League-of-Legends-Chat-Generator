@@ -1,7 +1,8 @@
-import type { ChatLine, Palette, Project } from "./types";
+import type { Banner, ChatLine, Palette, Project } from "./types";
 import { $, download, stamp, toast } from "./dom";
 import { changed, DEFAULT_SETTINGS, defaultBanner, makeLine, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
 import { syncStyleControls } from "./styleControls";
+import { bannerImageBlob, blobToDataUrl, dataUrlToBlob, setBannerImage } from "./imageStore";
 
 const STORAGE_KEY = "chat-log-maker:v1";
 
@@ -40,7 +41,9 @@ function apply(data: unknown): void {
     return makeLine({ ...old, channel, id: undefined });
   });
   state.scoreboard = { allyTurrets: 0, enemyTurrets: 0, ...(p.scoreboard ?? {}) };
-  state.banner = { ...defaultBanner(), ...(p.banner ?? {}) };
+  // Early saves had a plaque checkbox.
+  const { imageData: _, plaque, ...banner } = (p.banner ?? {}) as Partial<Banner> & { imageData?: string; plaque?: boolean };
+  state.banner = { ...defaultBanner(), ...(plaque === false ? { background: "none" as const } : {}), ...banner };
   // Saves from before the roster existed get one built from their lines.
   state.players = Array.isArray(p.players)
     ? p.players.map((pl) => ({ ...pl, id: newId() }))
@@ -66,16 +69,23 @@ export function mountProjectFiles(): void {
     }
   });
 
-  $<HTMLButtonElement>("#btn-save").addEventListener("click", () =>
-    download(new Blob([JSON.stringify(snapshot(), null, 2)], { type: "application/json" }), `chat-${stamp()}.json`),
-  );
+  // Saved files carry the Victory picture too, so they open on any device.
+  $<HTMLButtonElement>("#btn-save").addEventListener("click", async () => {
+    const data = snapshot();
+    const img = state.banner.background === "image" ? await bannerImageBlob() : null;
+    if (img) data.banner = { ...state.banner, imageData: await blobToDataUrl(img) };
+    download(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `chat-${stamp()}.json`);
+  });
 
   $<HTMLInputElement>("#file-load").addEventListener("change", async (e) => {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
     try {
-      apply(JSON.parse(await file.text()));
+      const data = JSON.parse(await file.text());
+      apply(data);
+      const pic = (data as Project).banner?.imageData;
+      if (pic) await setBannerImage(await dataUrlToBlob(pic)).catch(() => toast("The file's Victory picture couldn't be opened."));
       syncStyleControls();
       changed(true);
       toast(`Loaded ${state.lines.length} lines.`);

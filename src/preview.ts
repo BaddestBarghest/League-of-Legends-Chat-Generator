@@ -29,7 +29,7 @@ export function mountPreview(): void {
       const art = await loadBannerArt(state.banner);
       if (ticket !== drawing) return;
       renderBanner(canvas, state.banner, dpr, art);
-      size = bannerSize(state.banner);
+      size = bannerSize(state.banner, art);
     } else {
       const open = lines.findIndex((l) => l.id === getOpenLineId());
       render(canvas, lines, settings, dpr, { highlight: open });

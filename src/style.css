@@ -220,6 +220,8 @@ button.link:hover { background: none; color: #fff; }
 .banner-form { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
 .banner-form .field { align-self: stretch; }
 .banner-form .hint { margin: 0; }
+.bn-image { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: end; align-self: stretch; }
+.bn-image .slider { flex: 1; min-width: 180px; }
 .sb-opts { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: end; }
 .sb-opts label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
 .sb-opts input { width: 96px; }

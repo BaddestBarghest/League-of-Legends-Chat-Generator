@@ -73,7 +73,10 @@ export interface Settings {
 export interface Banner {
   result: "victory" | "defeat";
   text: string;
-  plaque: boolean;
+  background: "plaque" | "none" | "image";
+  size: number; // text size, 1 is the game's
+  spacing: number; // extra pixels between letters at the game's size
+  imageSize: number; // the user's picture, 1 fits the plaque's space
 }
 
 export interface Project {
@@ -82,5 +85,5 @@ export interface Project {
   lines: ChatLine[];
   players?: Player[];
   scoreboard?: { allyTurrets: number; enemyTurrets: number };
-  banner?: Banner;
+  banner?: Banner & { imageData?: string };
 }

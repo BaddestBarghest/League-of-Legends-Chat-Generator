@@ -1,6 +1,7 @@
 import type { Banner } from "./types";
 import { loadImage } from "./icons";
 import { FINISH, finishLetters } from "./bannerShade";
+import { bannerImage } from "./imageStore";
 
 // The Victory and Defeat screen. The plaques are the game's own art from
 // CommunityDragon. The word is drawn live in Beaufort for LOL Bold so any text
@@ -83,6 +84,7 @@ const SPAN = 1.2; // the gradients run this many capital heights
 
 export interface BannerArt {
   plaque: HTMLImageElement | null;
+  image: HTMLImageElement | null; // the user's own picture
 }
 
 const plaques = new Map<string, Promise<HTMLImageElement | null>>();
@@ -90,8 +92,12 @@ const plaques = new Map<string, Promise<HTMLImageElement | null>>();
 export async function loadBannerArt(b: Banner): Promise<BannerArt> {
   const file = LOOKS[b.result].plaque;
   if (!plaques.has(file)) plaques.set(file, loadImage(ART + file));
-  const [plaque] = await Promise.all([plaques.get(file)!, document.fonts.load(`bold 64px ${FONT_STACK}`).catch(() => [])]);
-  return { plaque };
+  const [plaque, image] = await Promise.all([
+    plaques.get(file)!,
+    b.background === "image" ? bannerImage() : null,
+    document.fonts.load(`bold 64px ${FONT_STACK}`).catch(() => []),
+  ]);
+  return { plaque, image };
 }
 
 export const bannerWord = (b: Banner) => b.text.trim() || LOOKS[b.result].word;
@@ -116,15 +122,17 @@ interface Glyph {
   y: number; // baseline
 }
 
-// Places each letter. They're drawn one at a time because the end letters are
-// bigger, so kerning is measured from the font and added back.
-function layout(ctx: CanvasRenderingContext2D, text: string, look: Look) {
-  const chars = [...text.toUpperCase()];
+// Places each letter around the middle of the capitals, at 1x. They're drawn
+// one at a time because the end letters are bigger, so kerning is measured
+// from the font and added back.
+function layout(ctx: CanvasRenderingContext2D, b: Banner) {
+  const look = LOOKS[b.result];
+  const chars = [...bannerWord(b).toUpperCase()];
   const font = (size: number) => `bold ${size}px ${FONT_STACK}`;
   ctx.font = font(100);
   const capShare = (ctx.measureText("H").actualBoundingBoxAscent || 66.6) / 100;
 
-  const cap = look.cap;
+  const cap = look.cap * b.size;
   const size = cap / capShare;
   const ends = chars.length > 1 && chars[0] !== " " && chars[chars.length - 1] !== " ";
   const sizes = chars.map((_, i) => (ends && (i === 0 || i === chars.length - 1) ? size * BIG : size));
@@ -137,11 +145,10 @@ function layout(ctx: CanvasRenderingContext2D, text: string, look: Look) {
     const n = chars[i + 1];
     return n ? ctx.measureText(c + n).width - ctx.measureText(c).width - ctx.measureText(n).width : 0;
   });
-  const steps = chars.map((_, i) => widths[i] + kern[i] + TRACK * cap);
-  const total = steps.slice(0, -1).reduce((a, b) => a + b, 0) + (widths[widths.length - 1] ?? 0);
-  // Positions at 1x, centered on 0.
+  const steps = chars.map((_, i) => widths[i] + kern[i] + TRACK * cap + b.spacing * b.size);
+  const total = steps.slice(0, -1).reduce((a, n) => a + n, 0) + (widths[widths.length - 1] ?? 0);
   let x = -total / 2;
-  const top = look.middle - cap / 2;
+  const top = -cap / 2;
   const glyphs = chars.map((ch, i) => {
     const g = { ch, size: sizes[i], x, y: top + sizes[i] * capShare };
     x += steps[i];
@@ -150,35 +157,73 @@ function layout(ctx: CanvasRenderingContext2D, text: string, look: Look) {
   return { glyphs, top, cap, total };
 }
 
+type Box = [number, number, number, number]; // left, top, right, bottom
+
+// Where the plaque, or the user's picture, sits around the middle of the text.
+function backdrop(b: Banner, art: BannerArt): Box | null {
+  const middle = LOOKS[b.result].middle;
+  if (b.background === "plaque") return [-W / 2, -middle, W / 2, H - middle];
+  const img = art.image;
+  if (b.background !== "image" || !img) return null;
+  // Fits the plaque's space, then the user's size on top of that.
+  const k = Math.min(W / img.naturalWidth, H / img.naturalHeight) * b.imageSize;
+  const iw = img.naturalWidth * k;
+  const ih = img.naturalHeight * k;
+  const cy = H / 2 - middle;
+  return [-iw / 2, cy - ih / 2, iw / 2, cy + ih / 2];
+}
+
 const scratch = document.createElement("canvas").getContext("2d")!;
 
-// Text keeps its size and can run past the plaque. The picture widens to
-// fit it, with the plaque staying in the middle.
-export function bannerSize(b: Banner): { width: number; height: number } {
-  const { total } = layout(scratch, bannerWord(b), LOOKS[b.result]);
-  return { width: Math.max(W, Math.ceil(total + PAD * 2)), height: H };
+// The picture is at least the plaque's size and grows to fit whatever is
+// bigger, text that runs past the plaque or a large picture.
+function frame(b: Banner, art: BannerArt) {
+  const middle = LOOKS[b.result].middle;
+  const { total, top, cap } = layout(scratch, b);
+  const pad = PAD * Math.max(1, b.size);
+  const boxes: Box[] = [
+    [-W / 2, -middle, W / 2, H - middle],
+    [-total / 2 - pad, top - pad, total / 2 + pad, top + cap * BIG + pad],
+  ];
+  const back = backdrop(b, art);
+  if (back) boxes.push(back);
+  const left = Math.min(...boxes.map((x) => x[0]));
+  const up = Math.min(...boxes.map((x) => x[1]));
+  const right = Math.max(...boxes.map((x) => x[2]));
+  const down = Math.max(...boxes.map((x) => x[3]));
+  return { width: Math.ceil(right - left), height: Math.ceil(down - up), cx: -left, cy: -up, back };
+}
+
+export function bannerSize(b: Banner, art: BannerArt): { width: number; height: number } {
+  const f = frame(b, art);
+  return { width: f.width, height: f.height };
 }
 
 export function renderBanner(canvas: HTMLCanvasElement, b: Banner, scale: number, art: BannerArt): void {
   const look = LOOKS[b.result];
-  const size = bannerSize(b);
-  const w = Math.round(size.width * scale);
-  const h = Math.round(size.height * scale);
-  const mid = size.width / 2;
+  const f = frame(b, art);
+  const w = Math.round(f.width * scale);
+  const h = Math.round(f.height * scale);
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
   ctx.clearRect(0, 0, w, h);
-  if (b.plaque && art.plaque) ctx.drawImage(art.plaque, (mid - W / 2) * scale, 0, W * scale, H * scale);
+  const back = f.back;
+  const pic = b.background === "plaque" ? art.plaque : b.background === "image" ? art.image : null;
+  if (back && pic) {
+    ctx.drawImage(pic, (f.cx + back[0]) * scale, (f.cy + back[1]) * scale, (back[2] - back[0]) * scale, (back[3] - back[1]) * scale);
+  }
 
-  const laid = layout(ctx, bannerWord(b), look);
-  const top = laid.top * scale;
+  const laid = layout(ctx, b);
+  // How many canvas pixels make one pixel of the game's art at this size.
+  const px = scale * b.size;
+  const top = (f.cy + laid.top) * scale;
   const cap = laid.cap * scale;
   const glyphs = laid.glyphs.map((g) => ({
     ch: g.ch,
     font: `bold ${g.size * scale}px ${FONT_STACK}`,
-    x: (mid + g.x) * scale,
-    y: g.y * scale,
+    x: (f.cx + g.x) * scale,
+    y: (f.cy + g.y) * scale,
   }));
   const each = (g: CanvasRenderingContext2D, paint: (gl: Glyph) => void) =>
     glyphs.forEach((gl) => {
@@ -196,8 +241,8 @@ export function renderBanner(canvas: HTMLCanvasElement, b: Banner, scale: number
   ctx.save();
   const [opacity, times] = look.shadow;
   ctx.shadowColor = `rgba(0,0,0,${opacity})`;
-  ctx.shadowBlur = 28 * scale;
-  ctx.shadowOffsetY = 3 * scale;
+  ctx.shadowBlur = 28 * px;
+  ctx.shadowOffsetY = 3 * px;
   ctx.shadowOffsetX = w * 2;
   for (let i = 0; i < times; i++) ctx.drawImage(shape, -w * 2, 0);
   ctx.restore();
@@ -210,14 +255,13 @@ export function renderBanner(canvas: HTMLCanvasElement, b: Banner, scale: number
   bc.fillRect(0, 0, w, h);
   bc.globalCompositeOperation = "source-atop";
   bc.lineJoin = "round";
-  bc.lineWidth = BORDER * scale;
+  bc.lineWidth = BORDER * px;
   bc.strokeStyle = gradient(bc, look.edge, top, cap);
   each(bc, (gl) => bc.strokeText(gl.ch, gl.x, gl.y));
   bc.globalCompositeOperation = "source-over";
 
   const img = bc.getImageData(0, 0, w, h);
-  // Shrunk text gets a finer finish, like the art at that size would have.
-  finishLetters(img, FINISH, cap / look.cap);
+  finishLetters(img, FINISH, px);
   bc.putImageData(img, 0, 0);
   ctx.drawImage(body, 0, 0);
 }

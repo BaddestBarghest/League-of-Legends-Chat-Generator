@@ -123,10 +123,21 @@
               <button type="button" data-result="defeat">Defeat</button>
             </div>
             <label class="field"><span class="field-label">Text</span>
-              <input id="bn-text" type="text" maxlength="40" placeholder="Victory" aria-label="Banner text" />
+              <input id="bn-text" type="text" maxlength="60" placeholder="Victory" aria-label="Banner text" />
             </label>
-            <label class="toggle"><input id="bn-plaque" type="checkbox" /> Plaque behind the text</label>
-            <p class="hint">Leave the text blank for the game's word. Long text runs past the plaque, and the picture widens to fit.</p>
+            <div class="field">
+              <span class="field-label">Background</span>
+              <div id="bn-bg" class="seg" role="group" aria-label="Background">
+                <button type="button" data-bg="plaque" class="on">Game plaque</button>
+                <button type="button" data-bg="none">None</button>
+                <button type="button" data-bg="image">Your image</button>
+              </div>
+            </div>
+            <div id="bn-image-opts" class="bn-image" hidden>
+              <label class="file-btn">Choose image<input id="bn-image" type="file" accept="image/*" hidden /></label>
+              <label class="slider"><span>Image size</span><output id="o-bn-image-size"></output><input id="bn-image-size" type="range" min="0.25" max="3" step="0.01" /></label>
+            </div>
+            <p class="hint">Leave the text blank for the game's word. Long text runs past the background, and the picture grows to fit.</p>
           </div>
         </section>
       </div>
