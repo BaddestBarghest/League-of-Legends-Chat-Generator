@@ -1,7 +1,7 @@
 import { getChampions } from "./champions";
 import { el } from "./dom";
 import { fuzzySearch } from "./fuzzy";
-import { getItems, getSpells, getTrinkets, iconUrl, type IconKind } from "./gameData";
+import { getAugments, getChallenges, getItems, getSkins, getSpells, getTrinkets, iconUrl, loadAugments, loadChallenges, loadSkins, type IconKind } from "./gameData";
 
 let uid = 0;
 
@@ -168,3 +168,9 @@ export const championPicker = (input: HTMLInputElement) =>
 export const itemPicker = (input: HTMLInputElement) => namePicker(input, getItems, { icons: "item", showAllWhenEmpty: true });
 export const trinketPicker = (input: HTMLInputElement) => namePicker(input, getTrinkets, { icons: "item", showAllWhenEmpty: true });
 export const spellPicker = (input: HTMLInputElement) => namePicker(input, getSpells, { icons: "spell", showAllWhenEmpty: true });
+export const augmentPicker = (input: HTMLInputElement) =>
+  namePicker(input, getAugments, { icons: "augment", showAllWhenEmpty: true, onFocus: loadAugments });
+export const challengePicker = (input: HTMLInputElement) =>
+  namePicker(input, getChallenges, { icons: "challenge", showAllWhenEmpty: true, onFocus: loadChallenges });
+export const skinPicker = (input: HTMLInputElement, champion: () => string) =>
+  namePicker(input, () => getSkins(champion()), { showAllWhenEmpty: true, onFocus: () => loadSkins(champion()) });

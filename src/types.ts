@@ -41,6 +41,13 @@ export interface PlayerStats {
   items: string[]; // six item slots, then the trinket
   respawn: number; // seconds until respawn, 0 when alive
   bounty: number; // gold shown above the score, 0 for none
+  // Post-game screen
+  damage: number; // damage dealt to champions
+  gold: number; // gold earned
+  skin: string; // splash behind the row, "" for the default skin
+  augments: string[]; // up to five, ARAM: Mayhem and Arena
+  challenge: string; // the token shown at the end of the row, "" for none
+  challengeTier: string;
 }
 
 export interface Palette {

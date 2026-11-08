@@ -126,7 +126,25 @@ export const state = {
 };
 
 export function defaultStats(): PlayerStats {
-  return { level: 1, kills: 0, deaths: 0, assists: 0, cs: 0, spells: ["Flash", ""], keystone: "", secondary: "", items: ["", "", "", "", "", "", "Stealth Ward"], respawn: 0, bounty: 0 };
+  return {
+    level: 1,
+    kills: 0,
+    deaths: 0,
+    assists: 0,
+    cs: 0,
+    spells: ["Flash", ""],
+    keystone: "",
+    secondary: "",
+    items: ["", "", "", "", "", "", "Stealth Ward"],
+    respawn: 0,
+    bounty: 0,
+    damage: 0,
+    gold: 0,
+    skin: "",
+    augments: ["", "", "", "", ""],
+    challenge: "",
+    challengeTier: "MASTER",
+  };
 }
 
 // A player's stats, filled in with defaults for anything missing. Fills in
@@ -138,6 +156,7 @@ export function statsOf(p: Player): PlayerStats {
     if (s[k] === undefined) s[k] = v;
   }
   while (s.items.length < 7) s.items.push("");
+  while (s.augments.length < 5) s.augments.push("");
   if (s.spells.length < 2) s.spells = [s.spells[0] ?? "", s.spells[1] ?? ""];
   return s;
 }

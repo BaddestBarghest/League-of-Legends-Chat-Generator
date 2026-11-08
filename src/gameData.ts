@@ -1,8 +1,19 @@
-// Item, rune, summoner spell and ability names from Riot's Data Dragon.
+// Item, rune, summoner spell and ability names from Riot's Data Dragon, plus
+// skins, augments and challenge tokens from CommunityDragon's client data.
 // Lists load in the background and are cached per patch. Until they arrive,
 // or if the site can't reach Riot, fields still accept any text.
 
 const DDRAGON = "https://ddragon.leagueoflegends.com";
+const CDRAGON = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/";
+
+// Client paths like /lol-game-data/assets/ASSETS/... as CommunityDragon URLs.
+export const clientAsset = (path: string) => CDRAGON + path.replace(/^\/lol-game-data\/assets\//i, "").toLowerCase();
+
+async function getClientJson(path: string): Promise<any> {
+  const res = await fetch(CDRAGON + path);
+  if (!res.ok) throw new Error(`${path}: ${res.status}`);
+  return res.json();
+}
 const CACHE_PREFIX = "chat-log-maker:dd:";
 
 let versionPromise: Promise<string> | null = null;
@@ -48,12 +59,20 @@ let runes: string[] = [];
 // Bundled so the most common field works offline.
 let spells: string[] = ["Barrier", "Cleanse", "Exhaust", "Flash", "Ghost", "Heal", "Ignite", "Smite", "Teleport"];
 let championIds: Record<string, string> = {};
+let championKeys: Record<string, string> = {}; // name to the number the client uses
+const skins = new Map<string, { name: string; splash: string }[]>();
+let augments: string[] = [];
+let augmentRarity: Record<string, Rarity> = {};
+let challenges: string[] = [];
+let challengeTokens: Record<string, Record<string, string>> = {}; // name, tier, url
 const abilities = new Map<string, string[]>();
 
 // Image paths by name, relative to Data Dragon's cdn folder.
 type Images = Record<string, string>;
-const images: Record<IconKind, Images> = { champion: {}, item: {}, spell: {}, rune: {} };
-export type IconKind = "champion" | "item" | "spell" | "rune";
+const images: Record<IconKind, Images> = { champion: {}, item: {}, spell: {}, rune: {}, augment: {}, challenge: {} };
+export type IconKind = "champion" | "item" | "spell" | "rune" | "augment" | "challenge";
+export type Rarity = "kSilver" | "kGold" | "kPrismatic";
+export const CHALLENGE_TIERS = ["IRON", "BRONZE", "SILVER", "GOLD", "PLATINUM", "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGER"] as const;
 let patch = "";
 
 export const getItems = () => items;
@@ -61,11 +80,34 @@ export const getTrinkets = () => trinkets;
 export const getRunes = () => runes;
 export const getSpells = () => spells;
 export const getAbilities = (champion: string) => abilities.get(champion) ?? [];
+export const getSkins = (champion: string) => (skins.get(champion) ?? []).map((s) => s.name);
+export const getAugments = () => augments;
+export const augmentRarityOf = (name: string): Rarity | undefined => augmentRarity[clean(name)];
+export const getChallenges = () => challenges;
+
+// The splash the post-game rows use. Falls back to the champion's base skin.
+export function splashUrl(champion: string, skin: string): string | undefined {
+  const list = skins.get(champion);
+  return (list?.find((s) => s.name === skin) ?? list?.[0])?.splash;
+}
+
+// A challenge's token at a tier, or the closest tier it has.
+export function challengeTokenUrl(name: string, tier: string): string | undefined {
+  const t = challengeTokens[clean(name)];
+  if (!t) return undefined;
+  if (t[tier]) return t[tier];
+  const i = CHALLENGE_TIERS.indexOf(tier as (typeof CHALLENGE_TIERS)[number]);
+  for (let d = 1; d < CHALLENGE_TIERS.length; d++) {
+    for (const j of [i - d, i + d]) if (t[CHALLENGE_TIERS[j]]) return t[CHALLENGE_TIERS[j]];
+  }
+  return Object.values(t)[0];
+}
 
 // Full icon URL for a name, or undefined when it isn't known (yet).
 export function iconUrl(kind: IconKind, name: string): string | undefined {
   const path = images[kind][clean(name)];
   if (!path) return undefined;
+  if (path.startsWith("http")) return path;
   // Rune icons live outside the versioned folder.
   return kind === "rune" ? `${DDRAGON}/cdn/img/${path}` : `${DDRAGON}/cdn/${patch}/img/${path}`;
 }
@@ -144,22 +186,90 @@ export async function loadGameData(): Promise<void> {
       spells = v.names;
       images.spell = v.images;
     }),
-    cached("champions:v2", async () => {
+    cached("champions:v3", async () => {
       const data = await getJson("champion.json");
       const ids: Record<string, string> = {};
+      const keys: Record<string, string> = {};
       const imgs: Images = {};
-      for (const c of Object.values(data.data as Record<string, { id: string; name: string; image: { full: string } }>)) {
+      for (const c of Object.values(data.data as Record<string, { id: string; key: string; name: string; image: { full: string } }>)) {
         ids[c.name] = c.id;
+        keys[c.name] = c.key;
         imgs[c.name] = `champion/${c.image.full}`;
       }
-      return { ids, images: imgs };
+      return { ids, keys, images: imgs };
     }).then((v) => {
       championIds = v.ids;
+      championKeys = v.keys;
       images.champion = v.images;
     }),
   ];
   // One failing list shouldn't stop the others.
   await Promise.allSettled(jobs);
+}
+
+// A champion's skins and their splash art, loaded on demand.
+export async function loadSkins(champion: string): Promise<void> {
+  const key = championKeys[champion];
+  if (!key || skins.has(champion)) return;
+  try {
+    const list = await cached(`skins:${key}`, async () => {
+      const data = await getClientJson(`v1/champions/${key}.json`);
+      return (data.skins as { name: string; isBase: boolean; splashPath: string }[]).map((s) => ({
+        name: s.isBase ? "Default" : clean(s.name),
+        splash: clientAsset(s.splashPath),
+      }));
+    });
+    skins.set(champion, list);
+  } catch {
+    // rows just go without art
+  }
+}
+
+// Augments for ARAM: Mayhem and Arena, with their rarity. Loaded when needed.
+let augmentsLoad: Promise<void> | null = null;
+export function loadAugments(): Promise<void> {
+  augmentsLoad ??= cached("augments:v1", async () => {
+    const list = (await getClientJson("v1/cherry-augments.json")) as { nameTRA: string; augmentSmallIconPath: string; rarity: Rarity }[];
+    const imgs: Images = {};
+    const rarity: Record<string, Rarity> = {};
+    for (const a of list) {
+      const name = clean(a.nameTRA);
+      if (!name || !a.augmentSmallIconPath || imgs[name]) continue;
+      imgs[name] = clientAsset(a.augmentSmallIconPath);
+      rarity[name] = a.rarity;
+    }
+    return { names: unique(Object.keys(imgs)), images: imgs, rarity };
+  })
+    .then((v) => {
+      augments = v.names;
+      images.augment = v.images;
+      augmentRarity = v.rarity;
+    })
+    .catch(() => {});
+  return augmentsLoad;
+}
+
+// Challenges and their round tokens for every tier. Loaded when needed.
+let challengesLoad: Promise<void> | null = null;
+export function loadChallenges(): Promise<void> {
+  challengesLoad ??= cached("challenges:v1", async () => {
+    const data = await getClientJson("v1/challenges.json");
+    const tokens: Record<string, Record<string, string>> = {};
+    for (const c of Object.values(data.challenges as Record<string, { name: string; levelToIconPath?: Record<string, string> }>)) {
+      const name = clean(c.name);
+      const levels = c.levelToIconPath ?? {};
+      if (!name || !Object.keys(levels).length || tokens[name]) continue;
+      tokens[name] = Object.fromEntries(Object.entries(levels).map(([tier, path]) => [tier, clientAsset(path)]));
+    }
+    return tokens;
+  })
+    .then((tokens) => {
+      challengeTokens = tokens;
+      challenges = unique(Object.keys(tokens));
+      images.challenge = Object.fromEntries(challenges.map((n) => [n, challengeTokenUrl(n, "MASTER")!]));
+    })
+    .catch(() => {});
+  return challengesLoad;
 }
 
 // Ability names (passive first, then Q, W, E, R) for one champion, loaded on demand.

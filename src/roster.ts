@@ -1,7 +1,8 @@
 import type { Player } from "./types";
 import { $, el } from "./dom";
 import { iconUrl } from "./gameData";
-import { championPicker, itemPicker, spellPicker, trinketPicker } from "./namePicker";
+import { augmentPicker, challengePicker, championPicker, itemPicker, skinPicker, spellPicker, trinketPicker } from "./namePicker";
+import { CHALLENGE_TIERS } from "./gameData";
 import { changed, newId, onChange, state, statsOf } from "./state";
 import { isCollapsed, setCollapsed } from "./collapse";
 
@@ -149,7 +150,7 @@ function statsPanel(p: Player, onEdit: () => void): HTMLElement {
     changed();
   };
 
-  const num = (label: string, key: "level" | "kills" | "deaths" | "assists" | "cs" | "respawn" | "bounty", max: number) => {
+  const num = (label: string, key: "level" | "kills" | "deaths" | "assists" | "cs" | "respawn" | "bounty" | "damage" | "gold", max: number) => {
     const input = el("input", { type: "number", min: "0", max: String(max), value: String(s[key]), "aria-label": label });
     input.addEventListener("input", () => {
       s[key] = Math.max(0, Math.min(max, Math.floor(Number(input.value) || 0)));
@@ -168,6 +169,16 @@ function statsPanel(p: Player, onEdit: () => void): HTMLElement {
   };
 
   const setSpell = (i: 0 | 1) => (v: string) => (s.spells[i] = v);
+  const setAugment = (i: number) => (v: string) => (s.augments[i] = v);
+  const tier = el(
+    "select",
+    { "aria-label": "Challenge tier" },
+    CHALLENGE_TIERS.map((t) => el("option", { value: t, textContent: t[0] + t.slice(1).toLowerCase(), selected: t === s.challengeTier })),
+  );
+  tier.addEventListener("change", () => {
+    s.challengeTier = tier.value;
+    save();
+  });
   const setItem = (i: number) => (v: string) => (s.items[i] = v);
 
   // Keystone and secondary rune stay in the data but aren't on the Tab
@@ -184,6 +195,19 @@ function statsPanel(p: Player, onEdit: () => void): HTMLElement {
       "div",
       { className: "stats-four" },
       s.items.map((item, i) => (i === 6 ? pick("Trinket", item, trinketPicker, setItem(i)) : pick(`Item ${i + 1}`, item, itemPicker, setItem(i)))),
+    ),
+    el("p", { className: "stats-sub", textContent: "Post-game" }),
+    el("div", { className: "stats-four" }, [
+      num("Damage", "damage", 999999),
+      num("Gold", "gold", 999999),
+      pick("Skin", s.skin, (i) => skinPicker(i, () => p.champion), (v) => (s.skin = v)),
+      el("label", {}, ["Challenge tier", tier]),
+    ]),
+    el("div", { className: "stats-four" }, [pick("Challenge", s.challenge, challengePicker, (v) => (s.challenge = v))]),
+    el(
+      "div",
+      { className: "stats-five" },
+      s.augments.map((a, i) => pick(`Augment ${i + 1}`, a, augmentPicker, setAugment(i))),
     ),
   ]);
 }

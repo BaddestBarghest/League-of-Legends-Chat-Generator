@@ -248,6 +248,10 @@ button.link:hover { background: none; color: #fff; }
 .sb-opts input { width: 96px; }
 .sb-opts .hint { flex-basis: 100%; margin: 0; }
 /* Teams stack on the scoreboard so each player's fields get the full width. */
+.stats-sub { margin: 4px 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.stats-five { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 560px) { .stats-five { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stats-four:has(> label:only-child) > label { grid-column: span 2; }
 .sb-roster { grid-template-columns: 1fr; gap: 24px; margin-top: 16px; }
 
 /* ---------- composer ---------- */
