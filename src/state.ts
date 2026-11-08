@@ -1,7 +1,7 @@
 import type { ChatLine, Settings } from "./types";
 
 export const DEFAULT_SETTINGS: Settings = {
-  fontFamily: "Philosopher",
+  fontFamily: "Metrophobic",
   fontSize: 28,
   lineHeight: 1.45,
   outline: 0.045,

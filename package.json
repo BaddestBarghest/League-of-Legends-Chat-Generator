@@ -13,9 +13,9 @@
     "vite": "^6.0.0"
   },
   "dependencies": {
-    "@fontsource/federo": "^5.3.0",
-    "@fontsource/marcellus": "^5.3.0",
-    "@fontsource/philosopher": "^5.3.0",
+    "@fontsource/convergence": "^5.3.0",
+    "@fontsource/imprima": "^5.3.0",
+    "@fontsource/metrophobic": "^5.3.0",
     "@fontsource/quattrocento-sans": "^5.3.0",
     "jszip": "^3.10.2"
   }
