@@ -6,6 +6,7 @@ import { bannerSize, loadBannerArt, renderBanner } from "./banner";
 import { loadPopupArt, popupsSize, renderPopups } from "./popups";
 import { clipNow, onPlayback } from "./popupPanel";
 import { loadPostgameArt, PG_H, PG_W, renderPostgame } from "./postgame";
+import { killfeedSize, loadKillfeedArt, renderKillfeed } from "./killfeed";
 import { changed, onChange, picture, state } from "./state";
 
 export function mountPreview(): void {
@@ -33,6 +34,11 @@ export function mountPreview(): void {
       if (ticket !== drawing) return;
       renderPostgame(canvas, state.postgame, state.players, dpr, art);
       size = { width: PG_W, height: PG_H };
+    } else if (picture() === "killfeed") {
+      const art = await loadKillfeedArt(state.killfeed, state.players);
+      if (ticket !== drawing) return;
+      renderKillfeed(canvas, state.killfeed, state.players, dpr, art);
+      size = killfeedSize(state.killfeed);
     } else if (state.view === "popups") {
       const art = await loadPopupArt(state.popups);
       if (ticket !== drawing) return;
@@ -128,6 +134,6 @@ export function mountPreview(): void {
     // start on chat
   }
   onPlayback(schedule);
-  const tabs = ["players", "chat", "scoreboard", "postgame", "banner", "popups"];
+  const tabs = ["players", "chat", "scoreboard", "postgame", "killfeed", "banner", "popups"];
   setView((tabs.includes(last ?? "") ? last : "chat") as typeof state.view);
 }

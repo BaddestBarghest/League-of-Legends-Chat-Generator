@@ -235,6 +235,16 @@ button.link:hover { background: none; color: #fff; }
 .pp-speed { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
 .pp-speed input { width: 110px; }
 .pp-speed output { min-width: 36px; text-align: right; font-variant-numeric: tabular-nums; }
+.kf-colors { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.kf-card { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; }
+.kf-card:hover { border-color: var(--border-hover); }
+.kf-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.kf-row > select { width: auto; }
+.kf-spacer { flex: 1; }
+.kf-portrait { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.kf-portrait > select { width: auto; max-width: 240px; }
+.kf-portrait .cb { flex: 1; min-width: 160px; }
+.kf-label { width: 58px; font-size: 12px; color: var(--muted); }
 .pp-list { display: flex; flex-direction: column; gap: 10px; }
 .pp-card { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; }
 .pp-card:hover { border-color: var(--border-hover); }

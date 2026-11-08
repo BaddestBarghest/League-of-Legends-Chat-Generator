@@ -21,6 +21,7 @@
         <button type="button" role="tab" data-tab="chat" class="on" aria-selected="true">Chat</button>
         <button type="button" role="tab" data-tab="scoreboard" aria-selected="false">Scoreboard</button>
         <button type="button" role="tab" data-tab="postgame" aria-selected="false">Post-game</button>
+        <button type="button" role="tab" data-tab="killfeed" aria-selected="false">Kill feed</button>
         <button type="button" role="tab" data-tab="banner" aria-selected="false">Victory</button>
         <button type="button" role="tab" data-tab="popups" aria-selected="false">Popups</button>
       </nav>
@@ -147,6 +148,23 @@
             <label class="toggle"><input id="pg-gameid" type="checkbox" /> Show GameID</label>
             <p class="hint">Players, champions, skins, items, augments, damage and gold are on the Players tab. Allies are Team 1.</p>
           </div>
+        </section>
+      </div>
+      <div class="column" data-tab="killfeed" hidden>
+        <section class="panel" aria-label="Kill feed">
+          <div class="panel-head">
+            <h2>Kill feed</h2>
+            <div class="add-row">
+              <button id="kf-add" type="button" class="small">Add kill</button>
+            </div>
+          </div>
+          <div class="kf-colors">
+            <label class="pp-color"><input id="kf-ally" type="color" /> Ally kills</label>
+            <label class="pp-color"><input id="kf-enemy" type="color" /> Enemy kills</label>
+            <button id="kf-colors-reset" type="button" class="small">Reset colors</button>
+          </div>
+          <p class="hint">Rows stack from the top like in game. Killer, victim and assists can be a player, any champion, or your own picture.</p>
+          <div id="kf-list" class="pp-list"></div>
         </section>
       </div>
       <div class="column" data-tab="banner" hidden>

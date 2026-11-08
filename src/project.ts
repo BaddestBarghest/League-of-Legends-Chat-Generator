@@ -1,15 +1,16 @@
 import type { Banner, ChatLine, Palette, Project } from "./types";
 import { $, download, stamp, toast } from "./dom";
-import { changed, DEFAULT_SETTINGS, defaultBanner, defaultPopups, defaultPostgame, makeLine, makePopup, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
+import { changed, DEFAULT_SETTINGS, defaultBanner, defaultKillfeed, defaultPopups, defaultPostgame, makeLine, makePopup, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
 import { syncStyleControls } from "./styleControls";
 import { bannerImageBlob, blobToDataUrl, dataUrlToBlob, imageBlob, setBannerImage, setImage } from "./imageStore";
 import { customIconKey } from "./popups";
+import { killImageKey } from "./killfeed";
 
 // Storage keys keep the old name so saved work carries over.
 const STORAGE_KEY = "chat-log-maker:v1";
 
 function snapshot(): Project {
-  return { version: 1, settings: state.settings, lines: state.lines, players: state.players, scoreboard: state.scoreboard, banner: state.banner, popups: state.popups, popupSpeed: state.popupSpeed, postgame: state.postgame };
+  return { version: 1, settings: state.settings, lines: state.lines, players: state.players, scoreboard: state.scoreboard, banner: state.banner, popups: state.popups, popupSpeed: state.popupSpeed, postgame: state.postgame, killfeed: state.killfeed };
 }
 
 // Keeps colors the user picked, but swaps untouched old defaults for the new ones.
@@ -48,6 +49,7 @@ function apply(data: unknown): void {
   state.banner = { ...defaultBanner(), ...(plaque === false ? { background: "none" as const } : {}), ...banner };
   state.popupSpeed = typeof p.popupSpeed === "number" ? p.popupSpeed : 1;
   state.postgame = { ...defaultPostgame(), ...(p.postgame ?? {}) };
+  state.killfeed = p.killfeed && Array.isArray(p.killfeed.entries) ? { ...defaultKillfeed(), ...p.killfeed } : defaultKillfeed();
   state.popups = Array.isArray(p.popups) ? p.popups.map((x) => makePopup(x.type, { ...x })) : defaultPopups();
   // Saves from before the roster existed get one built from their lines.
   // Players get fresh ids, so point "you" on the post-game screen at the new one.
@@ -92,6 +94,18 @@ export function mountProjectFiles(): void {
       if (b) icons[p.id] = await blobToDataUrl(b);
     }
     if (Object.keys(icons).length) data.popupIcons = icons;
+    // Custom kill feed pictures, by the same keys they're stored under.
+    const kills: Record<string, string> = {};
+    for (const e of state.killfeed.entries) {
+      const slots = [["killer", e.killer], ["victim", e.victim], ...e.assists.map((a, i) => [`a${i}`, a] as const)] as const;
+      const keys = slots.filter(([, p]) => p.kind === "custom").map(([slot]) => killImageKey(e.id, slot));
+      if (e.icon === "custom") keys.push(killImageKey(e.id, "icon"));
+      for (const key of keys) {
+        const b = await imageBlob(key);
+        if (b) kills[key] = await blobToDataUrl(b);
+      }
+    }
+    if (Object.keys(kills).length) data.killfeedImages = kills;
     download(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `summoner-studio-${stamp()}.json`);
   });
 
@@ -104,6 +118,9 @@ export function mountProjectFiles(): void {
       apply(data);
       const pic = (data as Project).banner?.imageData;
       if (pic) await setBannerImage(await dataUrlToBlob(pic)).catch(() => toast("The file's Victory picture couldn't be opened."));
+      for (const [key, url] of Object.entries((data as Project).killfeedImages ?? {})) {
+        await setImage(key, await dataUrlToBlob(url)).catch(() => {});
+      }
       for (const [id, url] of Object.entries((data as Project).popupIcons ?? {})) {
         await setImage(customIconKey(id), await dataUrlToBlob(url)).catch(() => {});
       }

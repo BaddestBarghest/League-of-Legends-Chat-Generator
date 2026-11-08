@@ -5,6 +5,7 @@ import { loadScoreboardArt, renderScoreboard } from "./scoreboard";
 import { bannerWord, loadBannerArt, renderBanner } from "./banner";
 import { clipLength, loadPopupArt, popupFrame, renderPopups } from "./popups";
 import { loadPostgameArt, renderPostgame } from "./postgame";
+import { loadKillfeedArt, renderKillfeed } from "./killfeed";
 import { clipNow, playback } from "./popupPanel";
 import { picture, state } from "./state";
 
@@ -16,6 +17,13 @@ async function exportPng(): Promise<void> {
     renderScoreboard(c, state.players, state.settings, state.settings.scale, art, state.scoreboard);
     download(await canvasToBlob(c), `scoreboard-${stamp()}.png`);
     toast("Scoreboard PNG downloaded.");
+    return;
+  }
+  if (picture() === "killfeed") {
+    if (!state.killfeed.entries.length) return toast("Add a kill first.");
+    renderKillfeed(c, state.killfeed, state.players, state.settings.scale, await loadKillfeedArt(state.killfeed, state.players));
+    download(await canvasToBlob(c), `killfeed-${stamp()}.png`);
+    toast("PNG downloaded.");
     return;
   }
   if (picture() === "postgame") {

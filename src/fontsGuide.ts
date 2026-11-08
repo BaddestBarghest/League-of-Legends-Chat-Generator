@@ -83,7 +83,9 @@ export function mountFontsGuide(): void {
     const view = picture();
     let st: Status = { ok: true, text: "" };
     let text = "";
-    if (view === "postgame") {
+    if (view === "killfeed") {
+      // No text on the kill feed, so no font to miss.
+    } else if (view === "postgame") {
       st = scoreboardStatus().ok && spiegelRegularStatus().ok ? { ok: true, text: "" } : { ok: false, text: "" };
       text = "The post-game screen is using stand-in fonts. It needs Beaufort for LOL Bold and Spiegel Regular.";
     } else if (view === "popups") {

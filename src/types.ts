@@ -118,6 +118,31 @@ export interface Postgame {
   slots: "augments" | "none";
 }
 
+// Who's shown in a kill feed slot: a player from the roster, any champion,
+// the user's own picture, or nobody.
+export interface Portrait {
+  kind: "player" | "champion" | "custom" | "none";
+  value: string; // player id or champion name
+}
+
+export type KillIcon = "normal" | "streak" | "shutdown" | "capture" | "revive" | "custom";
+
+// One row of the kill feed in the top right of the game.
+export interface KillEntry {
+  id: string;
+  team: "ally" | "enemy"; // colors the row
+  killer: Portrait;
+  victim: Portrait;
+  assists: Portrait[]; // up to four
+  icon: KillIcon;
+}
+
+export interface Killfeed {
+  entries: KillEntry[];
+  allyColor: string;
+  enemyColor: string;
+}
+
 export interface Project {
   version: 1;
   settings: Settings;
@@ -128,5 +153,7 @@ export interface Project {
   popups?: Popup[];
   popupSpeed?: number; // 1 is the game's speed
   postgame?: Postgame;
+  killfeed?: Killfeed;
+  killfeedImages?: Record<string, string>; // custom pictures as data URLs, by slot key
   popupIcons?: Record<string, string>; // custom icons as data URLs, by popup id
 }

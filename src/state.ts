@@ -1,4 +1,4 @@
-import type { Banner, ChatLine, Player, PlayerStats, Popup, Postgame, Settings } from "./types";
+import type { Banner, ChatLine, KillEntry, Killfeed, Player, PlayerStats, Popup, Postgame, Settings } from "./types";
 import { POPUP_TYPES } from "./popupTypes";
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -126,6 +126,29 @@ export function defaultPostgame(): Postgame {
   };
 }
 
+export function makeKill(patch: Partial<KillEntry> = {}): KillEntry {
+  return {
+    id: newId(),
+    team: "ally",
+    killer: { kind: "champion", value: "Ahri" },
+    victim: { kind: "champion", value: "Zed" },
+    assists: [],
+    icon: "normal",
+    ...patch,
+  };
+}
+
+export function defaultKillfeed(): Killfeed {
+  return {
+    entries: [
+      makeKill({ assists: [{ kind: "champion", value: "Leona" }] }),
+      makeKill({ team: "enemy", killer: { kind: "champion", value: "Draven" }, victim: { kind: "champion", value: "Jinx" }, icon: "streak" }),
+    ],
+    allyColor: "#2b8fd6",
+    enemyColor: "#d63a3a",
+  };
+}
+
 export const defaultPopups = (): Popup[] => [makePopup("gold"), makePopup("xp", { start: 0.15 })];
 
 export const state = {
@@ -137,8 +160,9 @@ export const state = {
   popups: defaultPopups(),
   popupSpeed: 1,
   postgame: defaultPostgame(),
+  killfeed: defaultKillfeed(),
   // Which picture the preview and PNG export show.
-  view: "chat" as "players" | "chat" | "scoreboard" | "postgame" | "banner" | "popups",
+  view: "chat" as "players" | "chat" | "scoreboard" | "postgame" | "killfeed" | "banner" | "popups",
 };
 
 export function defaultStats(): PlayerStats {
