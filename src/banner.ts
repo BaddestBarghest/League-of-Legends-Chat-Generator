@@ -9,7 +9,7 @@ import { FINISH, finishLetters } from "./bannerShade";
 const ART = "https://raw.communitydragon.org/latest/game/assets/ux/endofgame/";
 const W = 512;
 const H = 256;
-const MAX_WIDTH = 440; // widest a word can be before it's shrunk to fit
+const PAD = 36; // room for the shadow when text runs past the plaque
 const FONT_STACK = '"Beaufort for LOL", Spectral, Georgia, serif';
 
 type Stop = [number, string];
@@ -94,7 +94,6 @@ export async function loadBannerArt(b: Banner): Promise<BannerArt> {
   return { plaque };
 }
 
-export const bannerSize = () => ({ width: W, height: H });
 export const bannerWord = (b: Banner) => b.text.trim() || LOOKS[b.result].word;
 
 function gradient(ctx: CanvasRenderingContext2D, stops: Stop[], top: number, cap: number): CanvasGradient {
@@ -119,58 +118,68 @@ interface Glyph {
 
 // Places each letter. They're drawn one at a time because the end letters are
 // bigger, so kerning is measured from the font and added back.
-function layout(ctx: CanvasRenderingContext2D, text: string, look: Look, s: number): { glyphs: Glyph[]; top: number; cap: number } {
+function layout(ctx: CanvasRenderingContext2D, text: string, look: Look) {
   const chars = [...text.toUpperCase()];
   const font = (size: number) => `bold ${size}px ${FONT_STACK}`;
   ctx.font = font(100);
   const capShare = (ctx.measureText("H").actualBoundingBoxAscent || 66.6) / 100;
 
-  const build = (cap: number) => {
-    const size = cap / capShare;
-    const ends = chars.length > 1 && chars[0] !== " " && chars[chars.length - 1] !== " ";
-    const sizes = chars.map((_, i) => (ends && (i === 0 || i === chars.length - 1) ? size * BIG : size));
-    const widths = chars.map((c, i) => {
-      ctx.font = font(sizes[i]);
-      return ctx.measureText(c).width;
-    });
-    ctx.font = font(size);
-    const kern = chars.map((c, i) => {
-      const n = chars[i + 1];
-      return n ? ctx.measureText(c + n).width - ctx.measureText(c).width - ctx.measureText(n).width : 0;
-    });
-    const steps = chars.map((_, i) => widths[i] + kern[i] + TRACK * cap);
-    const total = steps.slice(0, -1).reduce((a, b) => a + b, 0) + (widths[widths.length - 1] ?? 0);
-    return { size, sizes, steps, total };
-  };
-
-  let cap = look.cap;
-  let fit = build(cap);
-  if (fit.total > MAX_WIDTH) {
-    cap *= MAX_WIDTH / fit.total;
-    fit = build(cap);
-  }
+  const cap = look.cap;
+  const size = cap / capShare;
+  const ends = chars.length > 1 && chars[0] !== " " && chars[chars.length - 1] !== " ";
+  const sizes = chars.map((_, i) => (ends && (i === 0 || i === chars.length - 1) ? size * BIG : size));
+  const widths = chars.map((c, i) => {
+    ctx.font = font(sizes[i]);
+    return ctx.measureText(c).width;
+  });
+  ctx.font = font(size);
+  const kern = chars.map((c, i) => {
+    const n = chars[i + 1];
+    return n ? ctx.measureText(c + n).width - ctx.measureText(c).width - ctx.measureText(n).width : 0;
+  });
+  const steps = chars.map((_, i) => widths[i] + kern[i] + TRACK * cap);
+  const total = steps.slice(0, -1).reduce((a, b) => a + b, 0) + (widths[widths.length - 1] ?? 0);
+  // Positions at 1x, centered on 0.
+  let x = -total / 2;
   const top = look.middle - cap / 2;
-  let x = (W - fit.total) / 2;
   const glyphs = chars.map((ch, i) => {
-    const g = { ch, font: font(fit.sizes[i] * s), x: x * s, y: (top + fit.sizes[i] * capShare) * s };
-    x += fit.steps[i];
+    const g = { ch, size: sizes[i], x, y: top + sizes[i] * capShare };
+    x += steps[i];
     return g;
   });
-  return { glyphs, top: top * s, cap: cap * s };
+  return { glyphs, top, cap, total };
+}
+
+const scratch = document.createElement("canvas").getContext("2d")!;
+
+// Text keeps its size and can run past the plaque. The picture widens to
+// fit it, with the plaque staying in the middle.
+export function bannerSize(b: Banner): { width: number; height: number } {
+  const { total } = layout(scratch, bannerWord(b), LOOKS[b.result]);
+  return { width: Math.max(W, Math.ceil(total + PAD * 2)), height: H };
 }
 
 export function renderBanner(canvas: HTMLCanvasElement, b: Banner, scale: number, art: BannerArt): void {
   const look = LOOKS[b.result];
-  const w = Math.round(W * scale);
-  const h = Math.round(H * scale);
+  const size = bannerSize(b);
+  const w = Math.round(size.width * scale);
+  const h = Math.round(size.height * scale);
+  const mid = size.width / 2;
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
   ctx.clearRect(0, 0, w, h);
-  if (b.plaque && art.plaque) ctx.drawImage(art.plaque, 0, 0, w, h);
+  if (b.plaque && art.plaque) ctx.drawImage(art.plaque, (mid - W / 2) * scale, 0, W * scale, H * scale);
 
-  const text = bannerWord(b);
-  const { glyphs, top, cap } = layout(ctx, text, look, scale);
+  const laid = layout(ctx, bannerWord(b), look);
+  const top = laid.top * scale;
+  const cap = laid.cap * scale;
+  const glyphs = laid.glyphs.map((g) => ({
+    ch: g.ch,
+    font: `bold ${g.size * scale}px ${FONT_STACK}`,
+    x: (mid + g.x) * scale,
+    y: g.y * scale,
+  }));
   const each = (g: CanvasRenderingContext2D, paint: (gl: Glyph) => void) =>
     glyphs.forEach((gl) => {
       g.font = gl.font;
