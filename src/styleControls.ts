@@ -11,7 +11,7 @@ const RANGES: [string, NumKey, (v: number) => string][] = [
   ["shadow", "shadow", (v) => (v === 0 ? "off" : `${v}`)],
   ["pad", "padding", (v) => `${v}px`],
 ];
-const COLORS = ["ally", "enemy", "gold", "white", "time", "ping", "info", "green", "cyan"] as const;
+const COLORS = ["ally", "enemy", "gold", "white", "time", "ping", "info", "green", "cyan", "yellow"] as const;
 
 // Puts the current settings back into the inputs.
 export function syncStyleControls(): void {

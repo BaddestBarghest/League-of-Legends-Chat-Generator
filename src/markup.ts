@@ -7,7 +7,6 @@ export interface Segment {
 
 const NAMED: Record<string, keyof Palette> = {
   gold: "gold",
-  yellow: "gold",
   red: "enemy",
   enemy: "enemy",
   blue: "ally",
@@ -17,6 +16,7 @@ const NAMED: Record<string, keyof Palette> = {
   info: "info",
   green: "green",
   cyan: "cyan",
+  yellow: "yellow",
 };
 
 const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;

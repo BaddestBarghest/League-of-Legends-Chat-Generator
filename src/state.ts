@@ -21,6 +21,7 @@ export const DEFAULT_SETTINGS: Settings = {
     info: "#b0e4a0",
     green: "#10e010",
     cyan: "#50aec4",
+    yellow: "#dcdc04",
   },
 };
 

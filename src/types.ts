@@ -26,6 +26,7 @@ export interface Palette {
   info: string; // statuses and stat names, pale green
   green: string;
   cyan: string;
+  yellow: string; // bounty amounts
 }
 
 export interface Settings {

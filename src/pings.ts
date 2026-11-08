@@ -114,6 +114,7 @@ const r = (s: string) => `<red>${s}</red>`;
 const b = (s: string) => `<blue>${s}</blue>`;
 const ping = (s: string) => `<ping>${s}</ping>`;
 const info = (s: string) => `<info>${s}</info>`;
+const y = (s: string) => `<yellow>${s}</yellow>`;
 const who = (player: string, champ: string) => `${player} (${champ})`;
 
 // Attack Speed shows its value in green and Attack Damage in teal. Other
@@ -121,6 +122,10 @@ const who = (player: string, champ: string) => `${player} (${champ})`;
 // "has slain" and the multikill text are gold, like the game.
 const killLine = (killer: string, victim: string, multi: string) =>
   `${killer} ${g("has slain")} ${victim}` + (multi && multi !== "none" ? ` ${g(multi)}` : "");
+
+// "has shut down Runa (Heimerdinger)! (Bonus Bounty: 409G)" with the amount in yellow.
+const shutdownLine = (killer: string, victim: string, bounty: string) =>
+  `${killer} ${g("has shut down")} ${victim}${g("! (Bonus Bounty: ")}${y(`${bounty.replace(/g$/i, "")}G`)}${g(")")}`;
 
 const statValue = (stat: string, value: string) =>
   stat.toLowerCase() === "attack speed" ? `<green>${value}</green>` : `<cyan>${value}</cyan>`;
@@ -172,15 +177,15 @@ export const PINGS: PingDef[] = [
   { id: "hud-health", group: HUD, label: "Health", kind: "chat", params: ["percent"], build: (p) => info(`Health ${p.percent}%`) },
   { id: "hud-mana", group: HUD, label: "Mana", kind: "chat", params: ["percent"], build: (p) => info(`Mana ${p.percent}%`) },
   { id: "hud-xp", group: HUD, label: "Experience", kind: "chat", params: ["percent", "level"], build: (p) => info(`${p.percent}% towards Level ${p.level}`) },
-  { id: "hud-champ-level", group: HUD, label: "Champion level", kind: "chat", params: ["enemy", "level"], build: (p) => `${r(p.enemy)} - Level ${p.level}` },
-  { id: "hud-portrait", group: HUD, label: "Champion alive or respawning", kind: "chat", params: ["enemy", "champStatus"], build: (p) => `${r(p.enemy)} - ${p.champStatus}` },
+  { id: "hud-champ-level", group: HUD, label: "Champion level", kind: "chat", params: ["enemy", "level"], build: (p) => `${r(p.enemy)}${info(` - Level ${p.level}`)}` },
+  { id: "hud-portrait", group: HUD, label: "Champion alive or respawning", kind: "chat", params: ["enemy", "champStatus"], build: (p) => `${r(p.enemy)}${info(` - ${p.champStatus}`)}` },
   { id: "hud-stat", group: HUD, label: "Champion stat", kind: "chat", params: ["stat", "statValue"], build: (p) => `${info(p.stat)} ${statValue(p.stat, p.statValue)}` },
   { id: "hud-rune", group: HUD, label: "Rune", kind: "chat", params: ["rune"], build: (p) => g(p.rune) },
-  { id: "hud-buff", group: HUD, label: "Buff timer", kind: "chat", params: ["buff", "monsterStatus"], build: (p) => `${p.buff} - ${p.monsterStatus}` },
-  { id: "hud-epic", group: HUD, label: "Epic monster timer", kind: "chat", params: ["monster", "monsterStatus"], build: (p) => `${g(p.monster)} - ${p.monsterStatus}` },
+  { id: "hud-buff", group: HUD, label: "Buff timer", kind: "chat", params: ["buff", "monsterStatus"], build: (p) => `${g(p.buff)}${info(` - ${p.monsterStatus}`)}` },
+  { id: "hud-epic", group: HUD, label: "Epic monster timer", kind: "chat", params: ["monster", "monsterStatus"], build: (p) => `${g(p.monster)}${info(` - ${p.monsterStatus}`)}` },
   { id: "hud-recall", group: HUD, label: "Recall", kind: "chat", params: [], build: () => "Recall" },
   { id: "hud-gold", group: HUD, label: "Gold", kind: "chat", params: ["gold"], build: (p) => `${g(`${p.gold} Gold`)}` },
-  { id: "hud-bounty", group: HUD, label: "Champion bounty", kind: "chat", params: ["enemy", "gold"], build: (p) => `${r(p.enemy)} has a ${g(`${p.gold} Gold`)} bounty` },
+  { id: "hud-bounty", group: HUD, label: "Champion bounty", kind: "chat", params: ["enemy", "gold"], build: (p) => `${r(p.enemy)} ${g("has a")} ${y(`${p.gold}G`)} ${g("bounty")}` },
   { id: "hud-latency", group: HUD, label: "Server ping", kind: "chat", params: ["ms"], build: (p) => `Ping is ${p.ms}ms` },
 
   // Kills and announcements. Killer and victim keep their team color.
@@ -192,6 +197,10 @@ export const PINGS: PingDef[] = [
     build: (p) => `${r(who(p.enemyPlayer, p.enemy))} ${g(p.spree)}` },
   { id: "spree-ally", group: KILLS, label: "Ally killing streak", kind: "system", params: ["allyPlayer", "ally", "spree"],
     build: (p) => `${b(who(p.allyPlayer, p.ally))} ${g(p.spree)}` },
+  { id: "shutdown-by-ally", group: KILLS, label: "Ally shut down enemy", kind: "system", params: ["allyPlayer", "ally", "enemyPlayer", "enemy", "gold"],
+    build: (p) => shutdownLine(b(who(p.allyPlayer, p.ally)), r(who(p.enemyPlayer, p.enemy)), p.gold) },
+  { id: "shutdown-by-enemy", group: KILLS, label: "Enemy shut down ally", kind: "system", params: ["enemyPlayer", "enemy", "allyPlayer", "ally", "gold"],
+    build: (p) => shutdownLine(r(who(p.enemyPlayer, p.enemy)), b(who(p.allyPlayer, p.ally)), p.gold) },
   { id: "ace-enemy", group: KILLS, label: "Enemy team ace", kind: "system", params: [], build: () => `${r("Enemy team")} ${g("has scored an ace!")}` },
   { id: "ace-ally", group: KILLS, label: "Ally team ace", kind: "system", params: [], build: () => `${b("Ally team")} ${g("has scored an ace!")}` },
 
