@@ -11,6 +11,7 @@ Make League style in-game chat logs and export them as transparent PNGs for vide
 - Team chat, all chat, action lines and system lines
 - Pings, kills, streaks, objectives and announcements, worded and colored like the game's own text
 - Autocomplete for champions, items, runes, summoner spells and abilities, with typo-tolerant search
+- Tab scoreboard: switch the preview to Scoreboard to draw both teams with champion portraits, spells, items, level, CS, K/D/A, bounties and respawn timers. Set each player's stats with the Stats button in Players
 - Timestamps you can turn off, and a warning when a line's time goes back in time
 - Color tags in messages: `<gold>`, `<red>`, `<blue>`, `<ping>`, `<info>`, `<b>` for bold, or any hex like `<#ff66cc>text</>`
 - Transparent PNG export at 1x, 2x or 3x, with optional line wrapping
