@@ -98,7 +98,7 @@ function playerRow(p: Player, render: () => void, withStats: boolean): HTMLEleme
     entry.classList.toggle("collapsed", collapsed);
     toggle.setAttribute("aria-expanded", String(!collapsed));
   };
-  apply(isCollapsed(id, true));
+  apply(isCollapsed(id, false));
   toggle.addEventListener("click", () => {
     const collapsed = !entry.classList.contains("collapsed");
     setCollapsed(id, collapsed);
