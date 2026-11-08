@@ -2,6 +2,7 @@ import "./fonts";
 import "./style.css";
 import { refreshChampions } from "./champions";
 import { loadGameData } from "./gameData";
+import { changed } from "./state";
 import { mountEditor } from "./editor";
 import { mountExporters } from "./exporters";
 import { mountComposer } from "./composer";
@@ -12,7 +13,8 @@ import { mountStyleControls } from "./styleControls";
 
 restoreAutosave();
 void refreshChampions();
-void loadGameData();
+// Redraw once names and icons arrive from Riot.
+void loadGameData().then(() => changed(true));
 mountRoster();
 mountEditor();
 mountComposer();

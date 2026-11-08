@@ -1,6 +1,6 @@
 import type { Player, PlayerStats } from "./types";
 import { $, el } from "./dom";
-import { getItems, getRunes, getSpells } from "./gameData";
+import { getItems, getRunes, getSpells, iconUrl } from "./gameData";
 import { championPicker, namePicker } from "./namePicker";
 import { changed, newId, onChange, state, statsOf } from "./state";
 
@@ -56,8 +56,21 @@ function playerRow(p: Player, render: () => void): HTMLElement {
 
   const name = el("input", { type: "text", className: "p-name", value: p.name, placeholder: "Name", "aria-label": "Player name" });
   name.addEventListener("input", () => update({ name: name.value }));
+  const portrait = el("span", { className: "p-icon", "aria-hidden": "true" });
+  const showPortrait = () => {
+    const url = iconUrl("champion", p.champion);
+    const img = url ? el("img", { src: url, alt: "", crossOrigin: "anonymous" }) : null;
+    // A blocked or missing icon leaves the empty tile, not a broken image.
+    img?.addEventListener("error", () => img.remove());
+    portrait.replaceChildren(...(img ? [img] : []));
+  };
+  showPortrait();
+
   const champ = el("input", { type: "text", value: p.champion, placeholder: "Champion", "aria-label": "Champion" });
-  champ.addEventListener("input", () => update({ champion: champ.value }));
+  champ.addEventListener("input", () => {
+    update({ champion: champ.value });
+    showPortrait();
+  });
 
   const remove = el("button", { type: "button", className: "p-del", textContent: "✕", title: "Remove player", "aria-label": "Remove player" });
   remove.addEventListener("click", () => {
@@ -80,7 +93,7 @@ function playerRow(p: Player, render: () => void): HTMLElement {
     render();
   });
 
-  const row = el("div", { className: "roster-row" }, [name, championPicker(champ), toggle, remove]);
+  const row = el("div", { className: "roster-row" }, [portrait, name, championPicker(champ), toggle, remove]);
   if (!statsOpen.has(p.id)) return row;
   return el("div", { className: "roster-entry" }, [row, statsPanel(p)]);
 }

@@ -48,32 +48,77 @@ let spells: string[] = ["Barrier", "Cleanse", "Exhaust", "Flash", "Ghost", "Heal
 let championIds: Record<string, string> = {};
 const abilities = new Map<string, string[]>();
 
+// Image paths by name, relative to Data Dragon's cdn folder.
+type Images = Record<string, string>;
+const images: Record<IconKind, Images> = { champion: {}, item: {}, spell: {}, rune: {} };
+export type IconKind = "champion" | "item" | "spell" | "rune";
+let patch = "";
+
 export const getItems = () => items;
 export const getRunes = () => runes;
 export const getSpells = () => spells;
 export const getAbilities = (champion: string) => abilities.get(champion) ?? [];
 
+// Full icon URL for a name, or undefined when it isn't known (yet).
+export function iconUrl(kind: IconKind, name: string): string | undefined {
+  const path = images[kind][clean(name)];
+  if (!path) return undefined;
+  // Rune icons live outside the versioned folder.
+  return kind === "rune" ? `${DDRAGON}/cdn/img/${path}` : `${DDRAGON}/cdn/${patch}/img/${path}`;
+}
+
+interface Listed {
+  names: string[];
+  images: Images;
+}
+
 export async function loadGameData(): Promise<void> {
+  patch = await latestVersion().catch(() => "");
   const jobs: Promise<void>[] = [
-    cached("items", async () => {
+    cached<Listed>("items:v2", async () => {
       const data = await getJson("item.json");
-      const list = Object.values(data.data as Record<string, { name: string; gold?: { purchasable?: boolean } }>);
-      return unique(list.filter((i) => i.gold?.purchasable).map((i) => i.name));
-    }).then((v) => void (items = v)),
-    cached("runes", async () => {
-      const trees = (await getJson("runesReforged.json")) as { name: string; slots: { runes: { name: string }[] }[] }[];
-      return unique(trees.flatMap((t) => [t.name, ...t.slots.flatMap((s) => s.runes.map((r) => r.name))]));
-    }).then((v) => void (runes = v)),
-    cached("spells", async () => {
+      const list = Object.values(data.data as Record<string, { name: string; image: { full: string }; gold?: { purchasable?: boolean } }>);
+      const imgs: Images = {};
+      for (const i of list) imgs[clean(i.name)] ??= `item/${i.image.full}`;
+      return { names: unique(list.filter((i) => i.gold?.purchasable).map((i) => i.name)), images: imgs };
+    }).then((v) => {
+      items = v.names;
+      images.item = v.images;
+    }),
+    cached<Listed>("runes:v2", async () => {
+      type Rune = { name: string; icon: string };
+      const trees = (await getJson("runesReforged.json")) as (Rune & { slots: { runes: Rune[] }[] })[];
+      const all = trees.flatMap((t) => [t, ...t.slots.flatMap((s) => s.runes)]);
+      const imgs: Images = {};
+      for (const r of all) imgs[clean(r.name)] = r.icon;
+      return { names: unique(all.map((r) => r.name)), images: imgs };
+    }).then((v) => {
+      runes = v.names;
+      images.rune = v.images;
+    }),
+    cached<Listed>("spells:v2", async () => {
       const data = await getJson("summoner.json");
-      return unique(Object.values(data.data as Record<string, { name: string }>).map((s) => s.name));
-    }).then((v) => void (spells = v)),
-    cached("champion-ids", async () => {
+      const list = Object.values(data.data as Record<string, { name: string; image: { full: string } }>);
+      const imgs: Images = {};
+      for (const s of list) imgs[clean(s.name)] ??= `spell/${s.image.full}`;
+      return { names: unique(list.map((s) => s.name)), images: imgs };
+    }).then((v) => {
+      spells = v.names;
+      images.spell = v.images;
+    }),
+    cached("champions:v2", async () => {
       const data = await getJson("champion.json");
       const ids: Record<string, string> = {};
-      for (const c of Object.values(data.data as Record<string, { id: string; name: string }>)) ids[c.name] = c.id;
-      return ids;
-    }).then((v) => void (championIds = v)),
+      const imgs: Images = {};
+      for (const c of Object.values(data.data as Record<string, { id: string; name: string; image: { full: string } }>)) {
+        ids[c.name] = c.id;
+        imgs[c.name] = `champion/${c.image.full}`;
+      }
+      return { ids, images: imgs };
+    }).then((v) => {
+      championIds = v.ids;
+      images.champion = v.images;
+    }),
   ];
   // One failing list shouldn't stop the others.
   await Promise.allSettled(jobs);
