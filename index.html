@@ -21,6 +21,7 @@
         <button type="button" role="tab" data-tab="scoreboard" aria-selected="false">Scoreboard</button>
       </nav>
       <div class="top-actions">
+        <button id="btn-fonts" type="button">Fonts<span id="fonts-dot" class="dot" hidden aria-label="A game font is missing"></span></button>
         <button id="btn-save" type="button">Save</button>
         <label class="file-btn">Open<input id="file-load" type="file" accept=".json,application/json" hidden /></label>
       </div>
@@ -115,6 +116,10 @@
           <canvas id="preview" aria-label="Rendered chat log. Click a line to edit it." title="Click a line to edit it"></canvas>
         </div>
         <p id="dims" class="dims"></p>
+        <p id="font-hint" class="font-hint" hidden>
+          <span id="font-hint-text"></span>
+          <button id="font-hint-open" type="button" class="link">Get the game fonts</button>
+        </p>
 
         <div class="export">
           <button id="btn-png" class="primary" type="button">Download PNG</button>
@@ -168,6 +173,26 @@
         </details>
       </section>
     </main>
+
+    <dialog id="fonts-dialog" class="fonts-dialog" aria-labelledby="fonts-title">
+      <div class="fonts-head">
+        <h2 id="fonts-title">Game fonts</h2>
+        <button id="fonts-close" type="button" class="small" aria-label="Close">Close</button>
+      </div>
+      <p>
+        Chat and the scoreboard match the game exactly with League's own fonts. They can't be shared from this site,
+        so download them from CommunityDragon, which hosts League's game files, then load them here.
+      </p>
+      <div id="fonts-list" class="fonts-list"></div>
+      <ol class="fonts-steps">
+        <li>Click Download for each font. Save the files anywhere.</li>
+        <li>Click <strong>Load font files</strong> and pick them. You can pick both at once.</li>
+      </ol>
+      <label class="file-btn primary">Load font files<input id="fonts-file" type="file" accept=".ttf,.otf,.woff,.woff2" multiple hidden /></label>
+      <h3>Saved in this browser</h3>
+      <p class="hint">Loaded fonts stay in this browser for your next visit. They aren't uploaded anywhere.</p>
+      <ul id="fonts-saved" class="fonts-saved"></ul>
+    </dialog>
 
     <footer class="foot">
       Fan made. Not endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone

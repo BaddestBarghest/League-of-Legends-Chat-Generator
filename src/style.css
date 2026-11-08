@@ -369,3 +369,51 @@ option { color: var(--text); }
 .stats-four { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .stats input { padding: 5px 6px; font-size: 13px; }
 @media (max-width: 480px) { .stats-four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* fonts guide */
+#btn-fonts { position: relative; }
+.dot { position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+.dot[hidden] { display: none; }
+.font-hint { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 6px 2px 0; font-size: 12px; color: var(--muted); }
+.font-hint[hidden] { display: none; }
+button.link { border: 0; padding: 0; background: none; color: var(--text); text-decoration: underline; text-underline-offset: 2px; font-size: 12px; }
+button.link:hover { background: none; color: #fff; }
+.fonts-dialog {
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 20px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+.fonts-dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+.fonts-dialog p { color: var(--muted); margin: 8px 0 14px; }
+.fonts-dialog h3 { margin: 18px 0 0; font-size: 13px; font-weight: 500; }
+.fonts-head { display: flex; align-items: center; justify-content: space-between; }
+.fonts-head h2 { font-size: 15px; color: var(--text); }
+.fonts-list { display: flex; flex-direction: column; gap: 6px; }
+.font-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+.font-row > div { display: flex; flex-direction: column; min-width: 0; }
+.font-file { font-size: 12px; color: var(--faint); overflow-wrap: anywhere; }
+.font-use { font-size: 12px; color: var(--muted); }
+.font-status { font-size: 12px; }
+.font-status.ok { color: #7fd18a; }
+.font-status.missing { color: var(--gold); }
+.font-row a { color: var(--text); font-size: 13px; }
+@media (max-width: 520px) { .font-row { grid-template-columns: 1fr auto; } }
+.fonts-steps { margin: 14px 0; padding-left: 20px; color: var(--muted); font-size: 13px; }
+.fonts-steps li { margin: 4px 0; }
+.fonts-saved { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.fonts-saved li { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
+.fonts-saved .font-none { color: var(--faint); }
+.file-btn.primary { display: inline-block; background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 500; }
