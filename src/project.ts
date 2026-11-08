@@ -1,6 +1,6 @@
 import type { Banner, ChatLine, Palette, Project } from "./types";
 import { $, download, stamp, toast } from "./dom";
-import { changed, DEFAULT_SETTINGS, defaultBanner, defaultKillfeed, defaultPopups, defaultPostgame, makeLine, makePopup, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
+import { changed, DEFAULT_SETTINGS, defaultBanner, defaultKillfeed, makeKill, defaultPopups, defaultPostgame, makeLine, makePopup, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
 import { syncStyleControls } from "./styleControls";
 import { bannerImageBlob, blobToDataUrl, dataUrlToBlob, imageBlob, setBannerImage, setImage } from "./imageStore";
 import { customIconKey } from "./popups";
@@ -49,7 +49,14 @@ function apply(data: unknown): void {
   state.banner = { ...defaultBanner(), ...(plaque === false ? { background: "none" as const } : {}), ...banner };
   state.popupSpeed = typeof p.popupSpeed === "number" ? p.popupSpeed : 1;
   state.postgame = { ...defaultPostgame(), ...(p.postgame ?? {}) };
-  state.killfeed = p.killfeed && Array.isArray(p.killfeed.entries) ? { ...defaultKillfeed(), ...p.killfeed } : defaultKillfeed();
+  state.killfeed =
+    p.killfeed && Array.isArray(p.killfeed.entries)
+      ? { ...defaultKillfeed(), ...p.killfeed, entries: p.killfeed.entries.map((e) => makeKill({ ...e })) }
+      : defaultKillfeed();
+  // The first colors were guesses. Saved work still on them gets the measured ones.
+  const fresh = defaultKillfeed();
+  if (state.killfeed.allyColor === "#2b8fd6") state.killfeed.allyColor = fresh.allyColor;
+  if (state.killfeed.enemyColor === "#d63a3a") state.killfeed.enemyColor = fresh.enemyColor;
   state.popups = Array.isArray(p.popups) ? p.popups.map((x) => makePopup(x.type, { ...x })) : defaultPopups();
   // Saves from before the roster existed get one built from their lines.
   // Players get fresh ids, so point "you" on the post-game screen at the new one.

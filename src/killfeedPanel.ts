@@ -1,7 +1,7 @@
 import type { KillEntry, KillIcon, Portrait } from "./types";
 import { $, el, toast } from "./dom";
 import { setImage } from "./imageStore";
-import { KILL_ICONS, killImageKey } from "./killfeed";
+import { KILL_ICONS, killImageKey, UNITS } from "./killfeed";
 import { championPicker } from "./namePicker";
 import { changed, defaultKillfeed, makeKill, onChange, state } from "./state";
 
@@ -36,6 +36,15 @@ function portraitField(label: string, p: Portrait, imageKey: string, allowNone: 
       ),
     ),
     el("option", { value: "champion", textContent: "Any champion...", selected: p.kind === "champion" }),
+    ...[...new Set(Object.values(UNITS).map((u) => u.group))].map((group) =>
+      el(
+        "optgroup",
+        { label: group },
+        Object.entries(UNITS)
+          .filter(([, u]) => u.group === group)
+          .map(([key, u]) => el("option", { value: `unit:${key}`, textContent: u.label, selected: p.kind === "unit" && p.value === key })),
+      ),
+    ),
     el("option", { value: "custom", textContent: "Your image...", selected: p.kind === "custom" }),
     ...(allowNone ? [el("option", { value: "none", textContent: "Nobody", selected: p.kind === "none" })] : []),
   ]);
@@ -60,6 +69,7 @@ function portraitField(label: string, p: Portrait, imageKey: string, allowNone: 
   kind.addEventListener("change", () => {
     const v = kind.value;
     if (v.startsWith("player:")) Object.assign(p, { kind: "player", value: v.slice(7) });
+    else if (v.startsWith("unit:")) Object.assign(p, { kind: "unit", value: v.slice(5) });
     else if (v === "champion") Object.assign(p, { kind: "champion", value: "" });
     else Object.assign(p, { kind: v, value: "" });
     changed(true);
@@ -146,6 +156,9 @@ export function mountKillfeedPanel(): void {
     const assists = e.assists.map((a, i) =>
       portraitField(`Assist ${i + 1}`, a, killImageKey(e.id, `a${i}`), true, () => {
         e.assists.splice(i, 1);
+        const k = e.you.startsWith("a") ? Number(e.you.slice(1)) : -1;
+        if (k === i) e.you = "none";
+        else if (k > i) e.you = `a${k - 1}`;
         changed(true);
       }),
     );
@@ -155,8 +168,24 @@ export function mountKillfeedPanel(): void {
       changed(true);
     });
 
+    const youSlots: [string, string][] = [
+      ["none", "You: nobody"],
+      ["killer", "You: killer"],
+      ["victim", "You: victim"],
+      ...e.assists.map((_, i): [string, string] => [`a${i}`, `You: assist ${i + 1}`]),
+    ];
+    const you = el(
+      "select",
+      { "aria-label": "You", title: "Your own champion gets a lime frame" },
+      youSlots.map(([v, label]) => el("option", { value: v, textContent: label, selected: e.you === v })),
+    );
+    you.addEventListener("change", () => {
+      e.you = you.value;
+      changed(true);
+    });
+
     return el("div", { className: "kf-card" }, [
-      el("div", { className: "kf-row" }, [team, ...iconPart, el("span", { className: "kf-spacer" }), up, down, remove]),
+      el("div", { className: "kf-row" }, [team, ...iconPart, you, el("span", { className: "kf-spacer" }), up, down, remove]),
       portraitField("Killer", e.killer, killImageKey(e.id, "killer"), false),
       portraitField("Victim", e.victim, killImageKey(e.id, "victim"), false),
       ...assists,

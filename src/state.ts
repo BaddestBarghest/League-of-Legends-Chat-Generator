@@ -134,6 +134,7 @@ export function makeKill(patch: Partial<KillEntry> = {}): KillEntry {
     victim: { kind: "champion", value: "Zed" },
     assists: [],
     icon: "normal",
+    you: "none",
     ...patch,
   };
 }
@@ -143,9 +144,11 @@ export function defaultKillfeed(): Killfeed {
     entries: [
       makeKill({ assists: [{ kind: "champion", value: "Leona" }] }),
       makeKill({ team: "enemy", killer: { kind: "champion", value: "Draven" }, victim: { kind: "champion", value: "Jinx" }, icon: "streak" }),
+      makeKill({ team: "enemy", killer: { kind: "champion", value: "Kha'Zix" }, victim: { kind: "unit", value: "dragon-hextech" } }),
     ],
-    allyColor: "#2b8fd6",
-    enemyColor: "#d63a3a",
+    // Fitted to in-game screenshots, with the strip art's own shading taken out.
+    allyColor: "#569ee3",
+    enemyColor: "#e43431",
   };
 }
 

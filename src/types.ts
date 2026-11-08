@@ -121,8 +121,8 @@ export interface Postgame {
 // Who's shown in a kill feed slot: a player from the roster, any champion,
 // the user's own picture, or nobody.
 export interface Portrait {
-  kind: "player" | "champion" | "custom" | "none";
-  value: string; // player id or champion name
+  kind: "player" | "champion" | "unit" | "custom" | "none";
+  value: string; // player id, champion name, or a unit like "turret-blue"
 }
 
 export type KillIcon = "normal" | "streak" | "shutdown" | "capture" | "revive" | "custom";
@@ -135,6 +135,7 @@ export interface KillEntry {
   victim: Portrait;
   assists: Portrait[]; // up to four
   icon: KillIcon;
+  you: string; // slot with the lime frame: "killer", "victim", "a0" to "a3", or "none"
 }
 
 export interface Killfeed {

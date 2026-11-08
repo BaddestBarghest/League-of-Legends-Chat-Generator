@@ -8,6 +8,38 @@ import { storedImage } from "./imageStore";
 // edge. Each row sits in a 70px slot.
 
 const ATLAS = "https://raw.communitydragon.org/latest/game/assets/ux/popups/killcalloutatlas.png";
+const CHARACTERS = "https://raw.communitydragon.org/latest/game/assets/characters/";
+// Frames are near black in game, and lime around your own champion.
+const FRAME = "#0b0710";
+const FRAME_YOU = "#d4dc84";
+
+// Turrets, objectives and minions that can show up in the feed, with the
+// game's own square icons.
+export const UNITS: Record<string, { label: string; group: string; file: string }> = {
+  "turret-blue": { label: "Turret (blue)", group: "Structures", file: "turret/hud/turret_blue_square.png" },
+  "turret-red": { label: "Turret (red)", group: "Structures", file: "turret/hud/turret_red_square.png" },
+  "inhibitor-blue": { label: "Inhibitor (blue)", group: "Structures", file: "inhibitor/hud/inhibitor_blue_square.png" },
+  "inhibitor-red": { label: "Inhibitor (red)", group: "Structures", file: "inhibitor/hud/inhibitor_red_square.png" },
+  "nexus-blue": { label: "Nexus (blue)", group: "Structures", file: "nexus/hud/nexus_blue_square.png" },
+  "nexus-red": { label: "Nexus (red)", group: "Structures", file: "nexus/hud/nexus_red_square.png" },
+  "dragon-hextech": { label: "Hextech Drake", group: "Monsters", file: "sru_dragon_hextech/hud/icons2d/dragon_square_hextech.png" },
+  "dragon-chemtech": { label: "Chemtech Drake", group: "Monsters", file: "sru_dragon_chemtech/hud/icons2d/dragon_square_chemtech.png" },
+  "dragon-fire": { label: "Infernal Drake", group: "Monsters", file: "sru_dragon_fire/hud/dragon_square_fire.png" },
+  "dragon-water": { label: "Ocean Drake", group: "Monsters", file: "sru_dragon_water/hud/dragon_square_water.png" },
+  "dragon-air": { label: "Cloud Drake", group: "Monsters", file: "sru_dragon_air/hud/dragon_air_square.png" },
+  "dragon-earth": { label: "Mountain Drake", group: "Monsters", file: "sru_dragon_earth/hud/dragon_square_earth.png" },
+  "dragon-elder": { label: "Elder Dragon", group: "Monsters", file: "sru_dragon_elder/hud/dragon_square_elder.png" },
+  baron: { label: "Baron Nashor", group: "Monsters", file: "sru_baron/hud/baron_square.png" },
+  herald: { label: "Rift Herald", group: "Monsters", file: "sru_riftherald/hud/sruriftherald_square.png" },
+  voidgrub: { label: "Voidgrub", group: "Monsters", file: "sru_horde/hud/sru_voidgrub_square.png" },
+  atakhan: { label: "Atakhan", group: "Monsters", file: "sru_atakhan/hud/atakhan_v_square_128.png" },
+  "minion-blue": { label: "Minion (blue)", group: "Minions", file: "sru_orderminionmelee/hud/bluemelee_square.png" },
+  "minion-red": { label: "Minion (red)", group: "Minions", file: "sru_chaosminionmelee/hud/redmelee_square.png" },
+  "cannon-blue": { label: "Cannon minion (blue)", group: "Minions", file: "sru_orderminionsiege/hud/bluemechcannon_square.png" },
+  "cannon-red": { label: "Cannon minion (red)", group: "Minions", file: "sru_chaosminionsiege/hud/redmechcannon_square.png" },
+  "super-blue": { label: "Super minion (blue)", group: "Minions", file: "sru_orderminionsuper/hud/bluemechmelee_square.png" },
+  "super-red": { label: "Super minion (red)", group: "Minions", file: "sru_chaosminionsuper/hud/redmechmelee_square.png" },
+};
 const SLOT = 70;
 const RIGHT = 1600; // layout x values are measured from the left of a 1600 wide screen
 const SLOT_TOP = 264;
@@ -31,7 +63,7 @@ export const KILL_ICONS: Record<Exclude<KillEntry["icon"], "custom">, { label: s
   normal: { label: "Kill", rect: [1513, 286, 28, 29], uv: [5, 96, 33, 125] },
   streak: { label: "Kill streak", rect: [1510, 284, 31, 32], uv: [40, 94, 71, 126] },
   shutdown: { label: "Shutdown", rect: [1511, 284, 32, 32], uv: [77, 94, 109, 126] },
-  capture: { label: "Objective", rect: [1511, 284, 32, 32], uv: [114, 94, 145, 126] },
+  capture: { label: "Altar capture", rect: [1511, 284, 32, 32], uv: [114, 94, 145, 126] },
   revive: { label: "Revive", rect: [1513, 286, 28, 29], uv: [150, 96, 178, 125] },
 };
 const CUSTOM_ICON: Rect = [1511, 284, 32, 32];
@@ -53,6 +85,7 @@ const image = (url: string) => {
 function source(p: Portrait, entryId: string, slot: string, players: Player[]): { url?: string; key?: string } | null {
   if (p.kind === "none") return null;
   if (p.kind === "custom") return { key: killImageKey(entryId, slot) };
+  if (p.kind === "unit") return UNITS[p.value] ? { url: CHARACTERS + UNITS[p.value].file } : null;
   const champion = p.kind === "player" ? players.find((x) => x.id === p.value)?.champion : p.value;
   const url = champion ? iconUrl("champion", champion) : undefined;
   return url ? { url } : null;
@@ -134,6 +167,7 @@ export function renderKillfeed(canvas: HTMLCanvasElement, feed: Killfeed, player
     if (atlas) ctx.drawImage(tinted(atlas, L.background.uv, color), ...at(L.background.rect));
 
     const portrait = (p: Portrait, slot: string, rect: Rect, frame: Rect) => {
+      const frameColor = slot === e.you ? FRAME_YOU : FRAME;
       const src = source(p, e.id, slot, players);
       if (!src) return;
       const im = art.images.get((src.url ?? src.key)!) ?? null;
@@ -146,7 +180,7 @@ export function renderKillfeed(canvas: HTMLCanvasElement, feed: Killfeed, player
         ctx.fillStyle = "#0a0f14";
         ctx.fillRect(x, y, w, h);
       }
-      if (atlas) ctx.drawImage(tinted(atlas, L.frameUV, color), ...at(frame));
+      if (atlas) ctx.drawImage(tinted(atlas, L.frameUV, frameColor), ...at(frame));
     };
 
     e.assists.slice(0, 4).forEach((a, i) => portrait(a, `a${i}`, L.assists[i], L.assistFrames[i]));
