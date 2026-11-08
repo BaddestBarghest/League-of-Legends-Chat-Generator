@@ -1,12 +1,20 @@
 import JSZip from "jszip";
 import { $, download, stamp, toast } from "./dom";
 import { canvasToBlob, ensureFont, render, toPlainText } from "./render";
+import { loadScoreboardIcons, renderScoreboard } from "./scoreboard";
 import { state } from "./state";
 
 async function exportPng(): Promise<void> {
-  if (!state.lines.length) return toast("Add a line first.");
   await ensureFont(state.settings);
   const c = document.createElement("canvas");
+  if (state.view === "scoreboard") {
+    const icons = await loadScoreboardIcons(state.players);
+    renderScoreboard(c, state.players, state.settings, state.settings.scale, icons, state.scoreboard);
+    download(await canvasToBlob(c), `scoreboard-${stamp()}.png`);
+    toast("Scoreboard PNG downloaded.");
+    return;
+  }
+  if (!state.lines.length) return toast("Add a line first.");
   render(c, state.lines, state.settings, state.settings.scale);
   download(await canvasToBlob(c), `chat-${stamp()}.png`);
   toast("PNG downloaded.");

@@ -78,10 +78,13 @@ export const state = {
   settings: structuredClone(DEFAULT_SETTINGS),
   lines: sampleLines,
   players: playersFromLines(sampleLines),
+  scoreboard: { allyTurrets: 0, enemyTurrets: 0 },
+  // Which picture the preview and PNG export show.
+  view: "chat" as "chat" | "scoreboard",
 };
 
 export function defaultStats(): PlayerStats {
-  return { level: 1, kills: 0, deaths: 0, assists: 0, cs: 0, spells: ["Flash", ""], keystone: "", secondary: "", items: ["", "", "", "", "", "", ""] };
+  return { level: 1, kills: 0, deaths: 0, assists: 0, cs: 0, spells: ["Flash", ""], keystone: "", secondary: "", items: ["", "", "", "", "", "", ""], respawn: 0, bounty: 0 };
 }
 
 // A player's stats, filled in with defaults for anything missing.

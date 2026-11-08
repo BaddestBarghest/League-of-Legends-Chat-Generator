@@ -87,7 +87,10 @@
       </div>
       <section class="panel preview-panel" aria-label="Preview and export">
         <div class="panel-head">
-          <h2>Preview</h2>
+          <div id="view-seg" class="seg" role="group" aria-label="What to show">
+            <button type="button" data-view="chat" class="on">Chat</button>
+            <button type="button" data-view="scoreboard">Scoreboard</button>
+          </div>
           <label class="toggle"><input id="s-time" type="checkbox" /> Timestamps</label>
           <div id="bg-seg" class="seg" role="group" aria-label="Preview background">
             <button type="button" data-bg="checker" class="on">Transparent</button>
@@ -99,6 +102,11 @@
           <canvas id="preview" aria-label="Rendered chat log. Click a line to edit it." title="Click a line to edit it"></canvas>
         </div>
         <p id="dims" class="dims"></p>
+        <div id="sb-opts" class="sb-opts" hidden>
+          <label>Ally turrets taken <input id="sb-ally-turrets" type="number" min="0" max="11" /></label>
+          <label>Enemy turrets taken <input id="sb-enemy-turrets" type="number" min="0" max="11" /></label>
+          <p class="hint">Kills add up from each player's stats. Set stats with the Stats button in Players.</p>
+        </div>
 
         <div class="export">
           <button id="btn-png" class="primary" type="button">Download PNG</button>

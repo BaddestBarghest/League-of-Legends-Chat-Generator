@@ -103,7 +103,7 @@ function statsPanel(p: Player): HTMLElement {
   const s = statsOf(p);
   const save = () => changed();
 
-  const num = (label: string, key: "level" | "kills" | "deaths" | "assists" | "cs", max: number) => {
+  const num = (label: string, key: "level" | "kills" | "deaths" | "assists" | "cs" | "respawn" | "bounty", max: number) => {
     const input = el("input", { type: "number", min: "0", max: String(max), value: String(s[key]), "aria-label": label });
     input.addEventListener("input", () => {
       s[key] = Math.max(0, Math.min(max, Math.floor(Number(input.value) || 0)));
@@ -127,6 +127,7 @@ function statsPanel(p: Player): HTMLElement {
 
   return el("div", { className: "stats" }, [
     el("div", { className: "stats-nums" }, [num("Level", "level", 18), num("K", "kills", 999), num("D", "deaths", 999), num("A", "assists", 999), num("CS", "cs", 9999)]),
+    el("div", { className: "stats-grid" }, [num("Dead for (s), 0 if alive", "respawn", 999), num("Bounty gold", "bounty", 9999)]),
     el("div", { className: "stats-grid" }, [
       pick("Spell 1", s.spells[0], getSpells, setSpell(0), true),
       pick("Spell 2", s.spells[1], getSpells, setSpell(1), true),

@@ -6,7 +6,7 @@ import { syncStyleControls } from "./styleControls";
 const STORAGE_KEY = "chat-log-maker:v1";
 
 function snapshot(): Project {
-  return { version: 1, settings: state.settings, lines: state.lines, players: state.players };
+  return { version: 1, settings: state.settings, lines: state.lines, players: state.players, scoreboard: state.scoreboard };
 }
 
 // Keeps colors the user picked, but swaps untouched old defaults for the new ones.
@@ -35,6 +35,7 @@ function apply(data: unknown): void {
     const channel = old.channel ?? (old.allChat ? "all" : "");
     return makeLine({ ...old, channel, id: undefined });
   });
+  state.scoreboard = { allyTurrets: 0, enemyTurrets: 0, ...(p.scoreboard ?? {}) };
   // Saves from before the roster existed get one built from their lines.
   state.players = Array.isArray(p.players)
     ? p.players.map((pl) => ({ ...pl, id: newId() }))

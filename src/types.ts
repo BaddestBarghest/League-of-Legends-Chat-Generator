@@ -37,6 +37,8 @@ export interface PlayerStats {
   keystone: string;
   secondary: string;
   items: string[]; // six item slots, then the trinket
+  respawn: number; // seconds until respawn, 0 when alive
+  bounty: number; // gold shown above the score, 0 for none
 }
 
 export interface Palette {
@@ -70,4 +72,5 @@ export interface Project {
   settings: Settings;
   lines: ChatLine[];
   players?: Player[];
+  scoreboard?: { allyTurrets: number; enemyTurrets: number };
 }

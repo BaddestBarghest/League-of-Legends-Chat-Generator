@@ -1,24 +1,37 @@
 import { getOpenLineId, openLine } from "./editor";
+import { $ } from "./dom";
 import { ensureFont, lineAt, measure, render } from "./render";
-import { onChange, state } from "./state";
+import { loadScoreboardIcons, renderScoreboard, scoreboardSize } from "./scoreboard";
+import { changed, onChange, state } from "./state";
 
 export function mountPreview(): void {
-  const canvas = document.querySelector<HTMLCanvasElement>("#preview")!;
-  const stage = document.querySelector<HTMLDivElement>("#stage")!;
-  const dims = document.querySelector<HTMLParagraphElement>("#dims")!;
+  const canvas = $<HTMLCanvasElement>("#preview");
+  const stage = $<HTMLDivElement>("#stage");
+  const dims = $<HTMLParagraphElement>("#dims");
 
   let frame = 0;
+  let drawing = 0;
   const draw = async () => {
+    const ticket = ++drawing;
     await ensureFont(state.settings);
     const { settings, lines } = state;
     // Draw at screen density so the preview stays sharp.
     const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
-    const open = lines.findIndex((l) => l.id === getOpenLineId());
-    render(canvas, lines, settings, dpr, { highlight: open });
-    const { width, height } = measure(lines, settings);
-    canvas.style.width = `${width}px`;
+    let size;
+    if (state.view === "scoreboard") {
+      const icons = await loadScoreboardIcons(state.players);
+      // A newer draw started while icons loaded, let that one win.
+      if (ticket !== drawing) return;
+      renderScoreboard(canvas, state.players, settings, dpr, icons, state.scoreboard);
+      size = scoreboardSize(state.players);
+    } else {
+      const open = lines.findIndex((l) => l.id === getOpenLineId());
+      render(canvas, lines, settings, dpr, { highlight: open });
+      size = measure(lines, settings);
+    }
+    canvas.style.width = `${size.width}px`;
     const s = settings.scale;
-    dims.textContent = `${width} × ${height} px · exports at ${Math.round(width * s)} × ${Math.round(height * s)} px`;
+    dims.textContent = `${size.width} × ${size.height} px · exports at ${Math.round(size.width * s)} × ${Math.round(size.height * s)} px`;
   };
   const schedule = () => {
     cancelAnimationFrame(frame);
@@ -32,8 +45,37 @@ export function mountPreview(): void {
     }),
   );
 
+  // Chat or scoreboard. Chat-only controls hide on the scoreboard.
+  const setView = (view: typeof state.view) => {
+    state.view = view;
+    document.querySelectorAll<HTMLButtonElement>("#view-seg button").forEach((x) => x.classList.toggle("on", x.dataset.view === view));
+    $<HTMLElement>("#sb-opts").hidden = view !== "scoreboard";
+    for (const id of ["#btn-frames", "#btn-copy", "#btn-txt"]) $<HTMLButtonElement>(id).hidden = view === "scoreboard";
+    $<HTMLElement>("#s-time").closest("label")!.hidden = view === "scoreboard";
+    canvas.title = view === "chat" ? "Click a line to edit it" : "";
+    schedule();
+  };
+  document.querySelectorAll<HTMLButtonElement>("#view-seg button").forEach((b) =>
+    b.addEventListener("click", () => setView(b.dataset.view as typeof state.view)),
+  );
+
+  const turrets = (id: string, key: "allyTurrets" | "enemyTurrets") => {
+    const input = $<HTMLInputElement>(id);
+    input.value = String(state.scoreboard[key]);
+    input.addEventListener("input", () => {
+      state.scoreboard[key] = Math.max(0, Math.min(11, Math.floor(Number(input.value) || 0)));
+      changed();
+    });
+    onChange(() => {
+      if (document.activeElement !== input) input.value = String(state.scoreboard[key]);
+    });
+  };
+  turrets("#sb-ally-turrets", "allyTurrets");
+  turrets("#sb-enemy-turrets", "enemyTurrets");
+
   // Click a line in the preview to edit it.
   canvas.addEventListener("click", (e) => {
+    if (state.view !== "chat") return;
     const rect = canvas.getBoundingClientRect();
     const { height } = measure(state.lines, state.settings);
     const y = ((e.clientY - rect.top) / rect.height) * height;
@@ -43,5 +85,5 @@ export function mountPreview(): void {
 
   onChange(schedule);
   void document.fonts.ready.then(schedule);
-  schedule();
+  setView(state.view);
 }
