@@ -60,6 +60,8 @@ export function mountPreview(): void {
       // only a convenience
     }
     for (const id of ["#btn-frames", "#btn-copy", "#btn-txt"]) $<HTMLButtonElement>(id).hidden = view === "scoreboard";
+    // The scoreboard editor has many fields, so it gets the wider column.
+    $<HTMLElement>(".layout").classList.toggle("sb", view === "scoreboard");
     // Style only changes the chat, so it's hidden on the scoreboard.
     $<HTMLElement>(".settings").hidden = view === "scoreboard";
     $<HTMLElement>("#s-time").closest("label")!.hidden = view === "scoreboard";

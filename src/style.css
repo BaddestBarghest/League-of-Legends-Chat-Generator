@@ -121,11 +121,14 @@ button.link:hover { background: none; color: #fff; }
   padding: 24px var(--gutter);
   align-items: start;
 }
+/* On the scoreboard the editor gets the room, and the preview stops at about
+   the scoreboard's real width. */
+.layout.sb { grid-template-columns: minmax(520px, 1fr) minmax(0, 1120px); }
 @media (max-width: 1100px) {
-  .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .layout, .layout.sb { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 @media (max-width: 900px) {
-  .layout { grid-template-columns: 1fr; padding-top: 16px; }
+  .layout, .layout.sb { grid-template-columns: 1fr; padding-top: 16px; }
 }
 .column { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 
@@ -218,8 +221,8 @@ button.link:hover { background: none; color: #fff; }
 .sb-opts label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
 .sb-opts input { width: 96px; }
 .sb-opts .hint { flex-basis: 100%; margin: 0; }
-.sb-roster { margin-top: 16px; }
-@media (max-width: 1100px) { .sb-roster { grid-template-columns: 1fr; } }
+/* Teams stack on the scoreboard so each player's fields get the full width. */
+.sb-roster { grid-template-columns: 1fr; gap: 24px; margin-top: 16px; }
 
 /* ---------- composer ---------- */
 
