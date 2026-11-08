@@ -57,6 +57,45 @@ async function exportPopupFrames(): Promise<void> {
   toast(`${count} frames at ${POPUP_FPS} fps downloaded.`);
 }
 
+// The popup clip as a WebM video. The browser's encoder can't keep
+// transparency itself, so Mediabunny encodes it as a second picture beside
+// each frame, which is how WebM stores alpha. Loaded only when used.
+async function exportPopupWebm(): Promise<void> {
+  const { popups, settings } = state;
+  if (!popups.length) return toast("Add a popup first.");
+  if (typeof VideoEncoder === "undefined") return toast("This browser can't make videos. Try Chrome, Edge or Firefox, or use Frames .zip.");
+  toast("Making the video...");
+  try {
+    const { Output, WebMOutputFormat, BufferTarget, CanvasSource, QUALITY_VERY_HIGH } = await import("mediabunny");
+    const art = await loadPopupArt(popups);
+    const frame = popupFrame(popups, art);
+    // Video sizes must be even.
+    const even = (n: number) => Math.ceil((n * settings.scale) / 2) * 2;
+    const c = document.createElement("canvas");
+    const out = document.createElement("canvas");
+    out.width = even(frame.width);
+    out.height = even(frame.height);
+    const ctx = out.getContext("2d")!;
+    const output = new Output({ format: new WebMOutputFormat(), target: new BufferTarget() });
+    const source = new CanvasSource(out, { codec: "vp9", bitrate: QUALITY_VERY_HIGH, alpha: "keep" });
+    output.addVideoTrack(source, { frameRate: POPUP_FPS });
+    await output.start();
+    const count = Math.ceil(popupsDuration(popups) * POPUP_FPS) + 1;
+    for (let i = 0; i < count; i++) {
+      renderPopups(c, popups, i / POPUP_FPS, settings.scale, art, frame);
+      ctx.clearRect(0, 0, out.width, out.height);
+      ctx.drawImage(c, 0, 0);
+      // The last frame is a full keyframe, so nothing from the fade lingers on it.
+      await source.add(i / POPUP_FPS, 1 / POPUP_FPS, { keyFrame: i === count - 1 });
+    }
+    await output.finalize();
+    download(new Blob([output.target.buffer!], { type: "video/webm" }), `popups-${stamp()}.webm`);
+    toast("WebM downloaded.");
+  } catch (err) {
+    toast(`Couldn't make the video: ${(err as Error).message}. Frames .zip still works.`);
+  }
+}
+
 // One PNG per line, each showing one more message. Same size so they stack in an editor.
 async function exportFrames(): Promise<void> {
   if (state.view === "popups") return exportPopupFrames();
@@ -86,6 +125,7 @@ async function copyText(): Promise<void> {
 export function mountExporters(): void {
   $<HTMLButtonElement>("#btn-png").addEventListener("click", () => void exportPng());
   $<HTMLButtonElement>("#btn-frames").addEventListener("click", () => void exportFrames());
+  $<HTMLButtonElement>("#btn-webm").addEventListener("click", () => void exportPopupWebm());
   $<HTMLButtonElement>("#btn-copy").addEventListener("click", () => void copyText());
   $<HTMLButtonElement>("#btn-txt").addEventListener("click", () =>
     download(new Blob([toPlainText(state.lines, state.settings)], { type: "text/plain" }), `chat-${stamp()}.txt`),
