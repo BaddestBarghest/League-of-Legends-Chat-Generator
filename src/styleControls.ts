@@ -1,6 +1,7 @@
 import { $, el, toast } from "./dom";
-import { GILL, hasLocalGill } from "./render";
-import { changed, DEFAULT_SETTINGS, state } from "./state";
+import { GILL, gillInUse } from "./render";
+import { addFontFile, GAME_FONTS } from "./fontStore";
+import { changed, DEFAULT_SETTINGS, onChange, state } from "./state";
 
 type NumKey = "fontSize" | "lineHeight" | "outline" | "shadow" | "padding";
 
@@ -32,15 +33,37 @@ export function syncStyleControls(): void {
   for (const c of COLORS) $<HTMLInputElement>(`#c-${c}`).value = s.palette[c];
 }
 
+// Loads font files and says how it went. Returns the families loaded.
+export async function loadFontFiles(files: File[]): Promise<string[]> {
+  const done: string[] = [];
+  const failed: string[] = [];
+  for (const file of files) {
+    try {
+      done.push((await addFontFile(file)).family);
+    } catch {
+      failed.push(file.name);
+    }
+  }
+  const parts = [];
+  if (done.length) parts.push(`Loaded ${[...new Set(done)].join(", ")}. It's saved in this browser for next time.`);
+  if (failed.length) parts.push(`Couldn't read ${failed.join(", ")}.`);
+  if (parts.length) toast(parts.join(" "));
+  return done;
+}
+
 // Says which font is really being drawn when Gill Sans is picked.
 function updateFontNote(): void {
   const note = $<HTMLParagraphElement>("#font-note");
   if (state.settings.fontFamily !== GILL) {
     note.textContent = "";
-  } else if (hasLocalGill()) {
-    note.textContent = "Gill Sans found on this device. Exports will match the game.";
   } else {
-    note.textContent = "Gill Sans isn't installed here, so Metrophobic is used instead.";
+    const found = gillInUse();
+    note.textContent =
+      found === "Gill Sans MT Pro"
+        ? "Using Gill Sans MT Pro, the game's chat font."
+        : found
+          ? `Using ${found} from this device. Gill Sans MT Pro is a closer match, see Fonts.`
+          : "No Gill Sans here, so Metrophobic is used. See Fonts to get the game font.";
   }
 }
 
@@ -81,25 +104,22 @@ export function mountStyleControls(): void {
     changed();
   });
 
-  // The font file stays in the browser. Nothing gets uploaded.
+  // Font files stay in this browser and are remembered for next time.
   $<HTMLInputElement>("#file-font").addEventListener("change", async (e) => {
     const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    try {
-      const family = file.name.replace(/\.[^.]+$/, "").replace(/[^\w -]/g, "").trim() || "CustomFont";
-      const face = new FontFace(family, await file.arrayBuffer());
-      await face.load();
-      document.fonts.add(face);
-      s().fontFamily = family;
-      syncStyleControls();
-      changed();
-      toast(`Using ${family}. You'll need to load it again after a refresh.`);
-    } catch {
-      toast("Couldn't read that font file.");
-    }
+    const loaded = await loadFontFiles([...(input.files ?? [])]);
     input.value = "";
+    // A custom font becomes the chat font. Game fonts go where they belong.
+    const custom = loaded.find((f) => !GAME_FONTS.some((g) => g.family === f));
+    if (custom) s().fontFamily = custom;
+    else if (loaded.includes("Gill Sans MT Pro")) s().fontFamily = GILL;
+    syncStyleControls();
+    changed(true);
   });
 
+  // Fonts can finish loading after this runs, so keep the note current.
+  onChange((structural) => {
+    if (structural) updateFontNote();
+  });
   syncStyleControls();
 }
