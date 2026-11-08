@@ -4,10 +4,16 @@ Make League style in-game chat logs and export them as transparent PNGs for vide
 
 ## Features
 
+- Players panel: set up each team once, then pick who's talking from a list. Renaming a player updates every line they wrote
+- One composer for chat and pings. Type a message and press Enter, or pick a ping and its targets from your players
+- New lines go after the line you're editing, or at the end
+- Compact line list that shows each line in its real colors. Click a line, here or in the preview, to edit it
 - Team chat, all chat, action lines and system lines
-- Ping builder with map pings, vision, objectives, enemy timers, abilities, items and system messages
-- Color tags in messages: `<gold>`, `<red>`, `<blue>` or any hex like `<#ff66cc>text</>`
-- Transparent PNG export at 1x, 2x or 3x
+- Pings, kills, streaks, objectives and announcements, worded and colored like the game's own text
+- Autocomplete for champions, items, runes, summoner spells and abilities, with typo-tolerant search
+- Timestamps you can turn off, and a warning when a line's time goes back in time
+- Color tags in messages: `<gold>`, `<red>`, `<blue>`, `<ping>`, `<info>`, `<b>` for bold, or any hex like `<#ff66cc>text</>`
+- Transparent PNG export at 1x, 2x or 3x, with optional line wrapping
 - Frames export: a zip with one PNG per line, all the same size, for line by line animation
 - Copy or download the log as plain text
 - Adjustable font, size, spacing, outline, shadow and colors
