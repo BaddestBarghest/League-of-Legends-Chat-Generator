@@ -1,4 +1,4 @@
-import type { ChatLine, LineKind, Team } from "./types";
+import type { Channel, ChatLine, LineKind, Team } from "./types";
 import { $, el } from "./dom";
 import { changed, makeLine, newId, onChange, state } from "./state";
 
@@ -14,8 +14,8 @@ export function mountEditor(): void {
     state.lines.forEach((l, i) => list.append(lineCard(l, i)));
   };
 
-  $<HTMLButtonElement>("#btn-add-chat").addEventListener("click", () => addLine(list, { body: "on my way" }));
-  $<HTMLButtonElement>("#btn-add-all").addEventListener("click", () => addLine(list, { allChat: true, body: "gg" }));
+  $<HTMLButtonElement>("#btn-add-chat").addEventListener("click", () => addLine(list, { channel: "team", body: "on my way" }));
+  $<HTMLButtonElement>("#btn-add-all").addEventListener("click", () => addLine(list, { channel: "all", body: "gg" }));
 
   onChange((structural) => {
     if (structural) renderList();
@@ -71,8 +71,13 @@ function lineCard(l: ChatLine, index: number): HTMLLIElement {
   kind.value = l.kind;
   kind.addEventListener("change", () => set({ kind: kind.value as LineKind }));
 
-  const all = el("input", { type: "checkbox", checked: l.allChat });
-  all.addEventListener("change", () => set({ allChat: all.checked }));
+  const channel = el("select", { className: "f-channel", "aria-label": "Chat tag" }, [
+    el("option", { value: "", textContent: "No tag" }),
+    el("option", { value: "team", textContent: "[Team]" }),
+    el("option", { value: "all", textContent: "[All]" }),
+  ]);
+  channel.value = l.channel;
+  channel.addEventListener("change", () => set({ channel: channel.value as Channel }));
 
   const tool = (label: string, title: string, fn: () => void, cls = "") => {
     const b = el("button", { type: "button", textContent: label, title, className: cls, "aria-label": title });
@@ -93,7 +98,7 @@ function lineCard(l: ChatLine, index: number): HTMLLIElement {
   ]);
 
   li.append(
-    el("div", { className: "row" }, [time, team, el("label", { className: "all-wrap" }, [all, "[All]"]), kind, tools]),
+    el("div", { className: "row" }, [time, team, channel, kind, tools]),
     el("div", { className: "row" }, [name, champ]),
     el("div", { className: "row" }, [body]),
   );

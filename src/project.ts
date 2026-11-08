@@ -1,4 +1,4 @@
-import type { Project } from "./types";
+import type { ChatLine, Project } from "./types";
 import { $, download, stamp, toast } from "./dom";
 import { changed, DEFAULT_SETTINGS, makeLine, onChange, state } from "./state";
 import { syncStyleControls } from "./styleControls";
@@ -19,7 +19,12 @@ function apply(data: unknown): void {
     ...(p.settings ?? {}),
     palette: { ...DEFAULT_SETTINGS.palette, ...(p.settings?.palette ?? {}) },
   };
-  state.lines = p.lines.map((l) => makeLine({ ...l, id: undefined }));
+  // Older saves had an allChat checkbox instead of a channel.
+  state.lines = p.lines.map((l) => {
+    const old = l as ChatLine & { allChat?: boolean };
+    const channel = old.channel ?? (old.allChat ? "all" : "");
+    return makeLine({ ...old, channel, id: undefined });
+  });
 }
 
 // Run before the UI mounts so it starts from the saved log.

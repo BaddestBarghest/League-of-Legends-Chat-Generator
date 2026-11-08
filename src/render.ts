@@ -39,7 +39,8 @@ export function lineSegments(line: ChatLine, s: Settings): Segment[] {
   if (line.team !== "system") {
     const nameColor = line.team === "ally" ? p.ally : p.enemy;
     let who = "";
-    if (line.allChat) who += "[All] ";
+    if (line.channel === "team") who += "[Team] ";
+    else if (line.channel === "all") who += "[All] ";
     who += line.name;
     if (line.champion.trim()) who += ` (${line.champion.trim()})`;
     if (line.kind === "chat") who += ":";

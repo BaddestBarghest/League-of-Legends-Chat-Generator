@@ -1,11 +1,13 @@
 export type Team = "ally" | "enemy" | "system";
 export type LineKind = "chat" | "action";
+// Tag before the name. Pings and purchases have none.
+export type Channel = "" | "team" | "all";
 
 export interface ChatLine {
   id: string;
   time: string;
   team: Team;
-  allChat: boolean;
+  channel: Channel;
   name: string;
   champion: string;
   // "chat" adds a colon after the name, "action" doesn't (like "purchased X").

@@ -26,7 +26,7 @@ export function makeLine(partial: Partial<ChatLine> = {}): ChatLine {
   return {
     time: "00:00",
     team: "ally",
-    allChat: false,
+    channel: "",
     name: "Summoner",
     champion: "",
     kind: "chat",
@@ -41,9 +41,9 @@ const SAMPLE: Partial<ChatLine>[] = [
   { time: "23:31", team: "enemy", name: "ElBosque", champion: "Yorick", kind: "action", body: "purchased <gold>Last Whisper</gold>" },
   { time: "23:34", name: "Nessie", champion: "Ezreal", body: "<red>Draven</red> <gold>R</gold>" },
   { time: "23:35", name: "Nessie", champion: "Ezreal", body: "<red>Jax</red> <gold>R</gold>" },
-  { time: "23:02", team: "enemy", allChat: true, name: "Balcony", champion: "Jax", body: "aram?" },
+  { time: "23:02", team: "enemy", channel: "all", name: "Balcony", champion: "Jax", body: "aram?" },
   { time: "22:25", name: "OldSparky", champion: "Irelia", kind: "action", body: "purchased <gold>Immortal Shieldbow</gold>" },
-  { time: "21:34", allChat: true, name: "Nessie", champion: "Ezreal", body: "hungry" },
+  { time: "21:34", channel: "all", name: "Nessie", champion: "Ezreal", body: "hungry" },
 ];
 
 // Everything the app edits lives here. Call changed() after any edit.
