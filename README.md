@@ -27,7 +27,7 @@ Pushing to `main` builds the site and deploys it with GitHub Actions. In the rep
 
 ## About the font
 
-The in-game chat uses a Friz Quadrata style font, which isn't free to share, so the site ships with Marcellus as a close free match. If you own the real font, use "Load my own font" in the Style panel.
+The in-game chat font isn't free to share, so the site ships with Philosopher as a close free match, plus Federo, Marcellus and Quattrocento Sans. The fonts are bundled with the site. If you own the real font, use "Load my own font" in the Style panel.
 
 ## Legal
 

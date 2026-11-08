@@ -2,7 +2,7 @@ import type { ChatLine, Settings } from "./types";
 import { parseMarkup, stripMarkup, type Segment } from "./markup";
 
 export function fontString(s: Settings, scale = 1): string {
-  return `${s.fontSize * scale}px ${quoteFamily(s.fontFamily)}, Georgia, serif`;
+  return `${s.fontSize * scale}px ${quoteFamily(s.fontFamily)}, "Trebuchet MS", sans-serif`;
 }
 
 function quoteFamily(f: string): string {

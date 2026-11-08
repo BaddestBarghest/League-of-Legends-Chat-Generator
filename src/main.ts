@@ -1,3 +1,4 @@
+import "./fonts";
 import "./style.css";
 import { mountEditor } from "./editor";
 import { mountExporters } from "./exporters";
