@@ -21,6 +21,16 @@ npm install
 npm run dev
 ```
 
+## Checking the wording against the game
+
+The chat lines come from the League Wiki and in-game screenshots. To compare them with the game's own text, run:
+
+```bash
+npm run strings
+```
+
+It downloads League's English string table from CommunityDragon (about 30 MB, cached after the first run) and lists every string that contains each chat phrase, plus any color tags found in them. Add your own words to search for more, like `npm run strings -- "first blood"`. Use `--lang de_de` for another language and `--fresh` to download again. Results are also saved to `scripts/strings-found.json`. Needs Node 18 or newer.
+
 ## Deploying
 
 Pushing to `main` builds the site and deploys it with GitHub Actions. In the repo settings, go to Pages and set the source to **GitHub Actions** once.
