@@ -67,6 +67,26 @@ export function iconUrl(kind: IconKind, name: string): string | undefined {
   return kind === "rune" ? `${DDRAGON}/cdn/img/${path}` : `${DDRAGON}/cdn/${patch}/img/${path}`;
 }
 
+interface RiotItem {
+  name: string;
+  image: { full: string };
+  gold?: { purchasable?: boolean };
+  maps?: Record<string, boolean>;
+  inStore?: boolean;
+  hideFromAll?: boolean;
+  requiredChampion?: string;
+}
+
+// Riot's item list also has Arena and Swarm entries named after abilities,
+// champion upgrades like Gangplank's ult, quests and hidden helpers. Only
+// keep items you can buy in the shop on Summoner's Rift (map 11) or ARAM
+// (map 12). Poro-Snax is kept because it fills the ARAM trinket slot.
+function isShopItem(i: RiotItem): boolean {
+  if (clean(i.name) === "Poro-Snax") return true;
+  if (!i.gold?.purchasable || i.inStore === false || i.hideFromAll || i.requiredChampion) return false;
+  return Boolean(i.maps?.["11"] || i.maps?.["12"]);
+}
+
 interface Listed {
   names: string[];
   images: Images;
@@ -75,12 +95,12 @@ interface Listed {
 export async function loadGameData(): Promise<void> {
   patch = await latestVersion().catch(() => "");
   const jobs: Promise<void>[] = [
-    cached<Listed>("items:v2", async () => {
+    cached<Listed>("items:v3", async () => {
       const data = await getJson("item.json");
-      const list = Object.values(data.data as Record<string, { name: string; image: { full: string }; gold?: { purchasable?: boolean } }>);
+      const list = Object.values(data.data as Record<string, RiotItem>);
       const imgs: Images = {};
       for (const i of list) imgs[clean(i.name)] ??= `item/${i.image.full}`;
-      return { names: unique(list.filter((i) => i.gold?.purchasable).map((i) => i.name)), images: imgs };
+      return { names: unique(list.filter(isShopItem).map((i) => i.name)), images: imgs };
     }).then((v) => {
       items = v.names;
       images.item = v.images;
@@ -96,12 +116,14 @@ export async function loadGameData(): Promise<void> {
       runes = v.names;
       images.rune = v.images;
     }),
-    cached<Listed>("spells:v2", async () => {
+    cached<Listed>("spells:v3", async () => {
       const data = await getJson("summoner.json");
-      const list = Object.values(data.data as Record<string, { name: string; image: { full: string } }>);
+      const list = Object.values(data.data as Record<string, { name: string; image: { full: string }; modes?: string[] }>);
       const imgs: Images = {};
       for (const s of list) imgs[clean(s.name)] ??= `spell/${s.image.full}`;
-      return { names: unique(list.map((s) => s.name)), images: imgs };
+      // Only spells from normal games and ARAM. Others are mode-only abilities.
+      const usable = list.filter((s) => s.modes?.some((m) => m === "CLASSIC" || m === "ARAM") && !/placeholder/i.test(s.name));
+      return { names: unique(usable.map((s) => s.name)), images: imgs };
     }).then((v) => {
       spells = v.names;
       images.spell = v.images;
