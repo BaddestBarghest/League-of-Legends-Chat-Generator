@@ -20,7 +20,20 @@
 
     <main class="layout">
       <section class="panel editor" aria-label="Chat lines"></section>
-      <section class="panel preview-panel" aria-label="Preview and export"></section>
+      <section class="panel preview-panel" aria-label="Preview and export">
+        <div class="panel-head">
+          <h2>Preview</h2>
+          <div class="seg" role="group" aria-label="Preview background">
+            <button type="button" data-bg="checker" class="on">Transparent</button>
+            <button type="button" data-bg="dark">Dark</button>
+            <button type="button" data-bg="light">Light</button>
+          </div>
+        </div>
+        <div id="stage" class="stage bg-checker">
+          <canvas id="preview" aria-label="Rendered chat log"></canvas>
+        </div>
+        <p id="dims" class="dims"></p>
+      </section>
     </main>
 
     <script type="module" src="/src/main.ts"></script>
