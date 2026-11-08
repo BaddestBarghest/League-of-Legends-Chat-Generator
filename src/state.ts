@@ -3,9 +3,9 @@ import type { ChatLine, Player, PlayerStats, Settings } from "./types";
 export const DEFAULT_SETTINGS: Settings = {
   fontFamily: "Gill Sans",
   fontSize: 28,
-  lineHeight: 1.45,
-  outline: 0.045,
-  shadow: 2,
+  lineHeight: 1.26,
+  outline: 0,
+  shadow: 1,
   padding: 10,
   fixedWidth: 0,
   scale: 2,
@@ -24,6 +24,14 @@ export const DEFAULT_SETTINGS: Settings = {
     cyan: "#50aec4",
     yellow: "#dcdc04",
   },
+};
+
+// Earlier defaults for text spacing and effects, before they were matched to
+// the game. Saves still on one of these get the current default.
+export const OLD_DEFAULT_TEXT: Record<string, number[]> = {
+  lineHeight: [1.45],
+  outline: [0.06, 0.045],
+  shadow: [3, 2],
 };
 
 // Earlier default palettes. Saves that still use one of these colors get

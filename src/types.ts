@@ -59,7 +59,7 @@ export interface Settings {
   fontSize: number;
   lineHeight: number; // times the font size
   outline: number; // fraction of the font size
-  shadow: number; // blur in px
+  shadow: number; // drop shadow distance in game pixels (the game uses 1)
   padding: number;
   fixedWidth: number; // 0 fits the content
   scale: number; // PNG export multiplier

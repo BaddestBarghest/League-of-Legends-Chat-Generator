@@ -9,7 +9,7 @@ const RANGES: [string, NumKey, (v: number) => string][] = [
   ["size", "fontSize", (v) => `${v}px`],
   ["lh", "lineHeight", (v) => v.toFixed(2)],
   ["outline", "outline", (v) => (v === 0 ? "off" : v.toFixed(2))],
-  ["shadow", "shadow", (v) => (v === 0 ? "off" : `${v}`)],
+  ["shadow", "shadow", (v) => (v === 0 ? "off" : `${v}px`)],
   ["pad", "padding", (v) => `${v}px`],
 ];
 const COLORS = ["ally", "enemy", "gold", "white", "time", "ping", "info", "green", "cyan", "yellow"] as const;

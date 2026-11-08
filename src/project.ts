@@ -1,6 +1,6 @@
 import type { ChatLine, Palette, Project } from "./types";
 import { $, download, stamp, toast } from "./dom";
-import { changed, DEFAULT_SETTINGS, makeLine, newId, OLD_DEFAULT_PALETTES, onChange, playersFromLines, state } from "./state";
+import { changed, DEFAULT_SETTINGS, makeLine, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
 import { syncStyleControls } from "./styleControls";
 
 const STORAGE_KEY = "chat-log-maker:v1";
@@ -29,6 +29,10 @@ function apply(data: unknown): void {
     ...(p.settings ?? {}),
     palette: upgradePalette(p.settings?.palette ?? {}),
   };
+  for (const [key, olds] of Object.entries(OLD_DEFAULT_TEXT)) {
+    const k = key as "lineHeight" | "outline" | "shadow";
+    if (olds.includes(state.settings[k])) state.settings[k] = DEFAULT_SETTINGS[k];
+  }
   // Older saves had an allChat checkbox instead of a channel.
   state.lines = p.lines.map((l) => {
     const old = l as ChatLine & { allChat?: boolean };

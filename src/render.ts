@@ -200,12 +200,17 @@ export function render(
     const y = s.padding + (startRow + i) * lh + baselineOffset;
     for (const piece of row) {
       ctx.font = fontString(s, 1, piece.bold);
-      // Dark outline and shadow first so text reads on any background.
+      // The game draws a hard dark copy 1px right and down at its 14px
+      // chat size. Scale that with the text. Canvas shadows ignore the
+      // transform, so multiply by the export scale too.
       ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.6)";
-      ctx.shadowBlur = s.shadow;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = s.shadow > 0 ? 1 : 0;
+      const offset = s.shadow * (s.fontSize / 14) * scale;
+      if (offset > 0) {
+        ctx.shadowColor = "rgba(0,0,0,0.85)";
+        ctx.shadowBlur = offset * 0.35;
+        ctx.shadowOffsetX = offset;
+        ctx.shadowOffsetY = offset;
+      }
       if (outline > 0) {
         ctx.strokeStyle = "rgba(0,0,0,0.78)";
         ctx.lineWidth = outline * 2;
