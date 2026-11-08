@@ -33,6 +33,9 @@ const C = {
   enemyKills: "#e83d32",
   badge: "#0b0b0b",
   badgeText: "#d8d8d8",
+  // Rims on the portrait and its two badges: bronze when alive, silver when dead.
+  rimAlive: "#7f6c44",
+  rimDead: "#6b6b6b",
 };
 
 export interface ScoreboardOptions {
@@ -161,8 +164,9 @@ export function renderScoreboard(
       const py = cy - 2;
       portrait(ctx, icons.get(key("champion", p.champion)), px, py, 23, dead);
       if (dead) text(String(st.respawn), px, py + 1, C.respawn, 22, "center", true);
-      badge(ctx, px - 16, py + 17, 9, p.team === "ally" ? "#0b1a2a" : "#3a0606", p.team === "ally" ? "#3f8fd2" : "#5a0b0b");
-      badge(ctx, px + 16, py + 17, 9, C.badge, "#5b5b5b");
+      const rim = dead ? C.rimDead : C.rimAlive;
+      badge(ctx, px - 16, py + 17, 9, p.team === "ally" ? "#0b1a2a" : "#3a0606", rim);
+      badge(ctx, px + 16, py + 17, 9, C.badge, rim);
       text(String(st.level), px + 16, py + 17.5, C.badgeText, 11, "center", true);
 
       // Creep score and K/D/A, with the bounty above when there is one.
@@ -215,7 +219,7 @@ function portrait(ctx: CanvasRenderingContext2D, img: HTMLImageElement | null | 
   ctx.restore();
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.strokeStyle = "#2c3339";
+  ctx.strokeStyle = grey ? C.rimDead : C.rimAlive;
   ctx.lineWidth = 2;
   ctx.stroke();
 }
