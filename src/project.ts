@@ -1,6 +1,6 @@
 import type { Banner, ChatLine, Palette, Project } from "./types";
 import { $, download, stamp, toast } from "./dom";
-import { changed, DEFAULT_SETTINGS, defaultBanner, defaultPopups, makeLine, makePopup, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
+import { changed, DEFAULT_SETTINGS, defaultBanner, defaultPopups, defaultPostgame, makeLine, makePopup, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
 import { syncStyleControls } from "./styleControls";
 import { bannerImageBlob, blobToDataUrl, dataUrlToBlob, imageBlob, setBannerImage, setImage } from "./imageStore";
 import { customIconKey } from "./popups";
@@ -9,7 +9,7 @@ import { customIconKey } from "./popups";
 const STORAGE_KEY = "chat-log-maker:v1";
 
 function snapshot(): Project {
-  return { version: 1, settings: state.settings, lines: state.lines, players: state.players, scoreboard: state.scoreboard, banner: state.banner, popups: state.popups, popupSpeed: state.popupSpeed };
+  return { version: 1, settings: state.settings, lines: state.lines, players: state.players, scoreboard: state.scoreboard, banner: state.banner, popups: state.popups, popupSpeed: state.popupSpeed, postgame: state.postgame };
 }
 
 // Keeps colors the user picked, but swaps untouched old defaults for the new ones.
@@ -47,11 +47,19 @@ function apply(data: unknown): void {
   const { imageData: _, plaque, ...banner } = (p.banner ?? {}) as Partial<Banner> & { imageData?: string; plaque?: boolean };
   state.banner = { ...defaultBanner(), ...(plaque === false ? { background: "none" as const } : {}), ...banner };
   state.popupSpeed = typeof p.popupSpeed === "number" ? p.popupSpeed : 1;
+  state.postgame = { ...defaultPostgame(), ...(p.postgame ?? {}) };
   state.popups = Array.isArray(p.popups) ? p.popups.map((x) => makePopup(x.type, { ...x })) : defaultPopups();
   // Saves from before the roster existed get one built from their lines.
+  // Players get fresh ids, so point "you" on the post-game screen at the new one.
+  const ids = new Map<string, string>();
   state.players = Array.isArray(p.players)
-    ? p.players.map((pl) => ({ ...pl, id: newId() }))
+    ? p.players.map((pl) => {
+        const id = newId();
+        ids.set(pl.id, id);
+        return { ...pl, id };
+      })
     : playersFromLines(state.lines);
+  state.postgame.you = ids.get(state.postgame.you) ?? "";
 }
 
 // Run before the UI mounts so it starts from the saved log.

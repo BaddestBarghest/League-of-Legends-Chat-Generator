@@ -4,6 +4,7 @@ import { canvasToBlob, ensureFont, render, toPlainText } from "./render";
 import { loadScoreboardArt, renderScoreboard } from "./scoreboard";
 import { bannerWord, loadBannerArt, renderBanner } from "./banner";
 import { clipLength, loadPopupArt, popupFrame, renderPopups } from "./popups";
+import { loadPostgameArt, renderPostgame } from "./postgame";
 import { clipNow, playback } from "./popupPanel";
 import { picture, state } from "./state";
 
@@ -15,6 +16,12 @@ async function exportPng(): Promise<void> {
     renderScoreboard(c, state.players, state.settings, state.settings.scale, art, state.scoreboard);
     download(await canvasToBlob(c), `scoreboard-${stamp()}.png`);
     toast("Scoreboard PNG downloaded.");
+    return;
+  }
+  if (picture() === "postgame") {
+    renderPostgame(c, state.postgame, state.players, state.settings.scale, await loadPostgameArt(state.postgame, state.players));
+    download(await canvasToBlob(c), `postgame-${stamp()}.png`);
+    toast("PNG downloaded.");
     return;
   }
   if (state.view === "popups") {

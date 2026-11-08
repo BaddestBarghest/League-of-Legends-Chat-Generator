@@ -145,7 +145,16 @@ interface Listed {
   trinkets?: string[];
 }
 
-export async function loadGameData(): Promise<void> {
+// Resolves once the lists above have loaded, or failed to.
+let ready: Promise<void> | null = null;
+export const gameDataReady = () => ready ?? Promise.resolve();
+
+export function loadGameData(): Promise<void> {
+  ready ??= loadAll();
+  return ready;
+}
+
+async function loadAll(): Promise<void> {
   patch = await latestVersion().catch(() => "");
   const jobs: Promise<void>[] = [
     cached<Listed>("items:v5", async () => {

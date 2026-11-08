@@ -1,4 +1,4 @@
-import type { Banner, ChatLine, Player, PlayerStats, Popup, Settings } from "./types";
+import type { Banner, ChatLine, Player, PlayerStats, Popup, Postgame, Settings } from "./types";
 import { POPUP_TYPES } from "./popupTypes";
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -111,6 +111,21 @@ export function makePopup(type: string, patch: Partial<Popup> = {}): Popup {
   };
 }
 
+export function defaultPostgame(): Postgame {
+  return {
+    result: "victory",
+    map: "HA",
+    mapName: "Howling Abyss",
+    mode: "ARAM: Mayhem",
+    record: "W:12 - L:9",
+    duration: "17:00",
+    showGameId: true,
+    you: "",
+    footer: "",
+    slots: "augments",
+  };
+}
+
 export const defaultPopups = (): Popup[] => [makePopup("gold"), makePopup("xp", { start: 0.15 })];
 
 export const state = {
@@ -121,8 +136,9 @@ export const state = {
   banner: defaultBanner(),
   popups: defaultPopups(),
   popupSpeed: 1,
+  postgame: defaultPostgame(),
   // Which picture the preview and PNG export show.
-  view: "chat" as "players" | "chat" | "scoreboard" | "banner" | "popups",
+  view: "chat" as "players" | "chat" | "scoreboard" | "postgame" | "banner" | "popups",
 };
 
 export function defaultStats(): PlayerStats {

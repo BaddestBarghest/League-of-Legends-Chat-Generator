@@ -31,6 +31,12 @@ export const GAME_FONTS = [
     use: "Popups",
     match: /spiegel/i,
   },
+  {
+    family: "Spiegel",
+    file: "spiegel-regular.otf",
+    use: "Post-game",
+    match: /spiegel/i,
+  },
 ] as const;
 
 export const FONT_SOURCE = "https://raw.communitydragon.org/latest/game/assets/ux/fonts/";

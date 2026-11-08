@@ -27,6 +27,12 @@ function popupStatus(): Status {
   return fontAvailable(POPUP_FONT, "bold") ? { ok: true, text: "Loaded" } : { ok: false, text: "Not loaded, using Source Sans 3" };
 }
 
+function spiegelRegularStatus(): Status {
+  // Checked by face, since a browser would happily fake regular from the bold file.
+  const loaded = [...document.fonts].some((f) => f.family.replace(/"/g, "") === POPUP_FONT && (f.weight === "400" || f.weight === "normal") && f.status === "loaded");
+  return loaded ? { ok: true, text: "Loaded" } : { ok: false, text: "Not loaded, using Source Sans 3" };
+}
+
 export function mountFontsGuide(): void {
   const dialog = $<HTMLDialogElement>("#fonts-dialog");
   const list = $<HTMLDivElement>("#fonts-list");
@@ -35,7 +41,7 @@ export function mountFontsGuide(): void {
   const dot = $<HTMLSpanElement>("#fonts-dot");
 
   const render = async () => {
-    const statuses = [chatStatus(), scoreboardStatus(), popupStatus()];
+    const statuses = [chatStatus(), scoreboardStatus(), popupStatus(), spiegelRegularStatus()];
     list.replaceChildren(
       ...GAME_FONTS.map((f, i) => {
         const st = statuses[i];
@@ -77,7 +83,10 @@ export function mountFontsGuide(): void {
     const view = picture();
     let st: Status = { ok: true, text: "" };
     let text = "";
-    if (view === "popups") {
+    if (view === "postgame") {
+      st = scoreboardStatus().ok && spiegelRegularStatus().ok ? { ok: true, text: "" } : { ok: false, text: "" };
+      text = "The post-game screen is using stand-in fonts. It needs Beaufort for LOL Bold and Spiegel Regular.";
+    } else if (view === "popups") {
       st = popupStatus();
       text = "The popups are using Source Sans 3 in place of the game's font.";
     } else if (view !== "chat") {
@@ -90,7 +99,7 @@ export function mountFontsGuide(): void {
     }
     hint.hidden = st.ok;
     $<HTMLSpanElement>("#font-hint-text").textContent = text;
-    dot.hidden = chatStatus().ok && scoreboardStatus().ok && popupStatus().ok;
+    dot.hidden = chatStatus().ok && scoreboardStatus().ok && popupStatus().ok && spiegelRegularStatus().ok;
   };
 
   const openGuide = () => {

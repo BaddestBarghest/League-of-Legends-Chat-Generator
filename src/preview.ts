@@ -5,6 +5,7 @@ import { loadScoreboardArt, renderScoreboard, scoreboardSize } from "./scoreboar
 import { bannerSize, loadBannerArt, renderBanner } from "./banner";
 import { loadPopupArt, popupsSize, renderPopups } from "./popups";
 import { clipNow, onPlayback } from "./popupPanel";
+import { loadPostgameArt, PG_H, PG_W, renderPostgame } from "./postgame";
 import { changed, onChange, picture, state } from "./state";
 
 export function mountPreview(): void {
@@ -27,6 +28,11 @@ export function mountPreview(): void {
       if (ticket !== drawing) return;
       renderScoreboard(canvas, state.players, settings, dpr, art, state.scoreboard);
       size = scoreboardSize(state.players);
+    } else if (picture() === "postgame") {
+      const art = await loadPostgameArt(state.postgame, state.players);
+      if (ticket !== drawing) return;
+      renderPostgame(canvas, state.postgame, state.players, dpr, art);
+      size = { width: PG_W, height: PG_H };
     } else if (state.view === "popups") {
       const art = await loadPopupArt(state.popups);
       if (ticket !== drawing) return;
@@ -122,6 +128,6 @@ export function mountPreview(): void {
     // start on chat
   }
   onPlayback(schedule);
-  const tabs = ["players", "chat", "scoreboard", "banner", "popups"];
+  const tabs = ["players", "chat", "scoreboard", "postgame", "banner", "popups"];
   setView((tabs.includes(last ?? "") ? last : "chat") as typeof state.view);
 }

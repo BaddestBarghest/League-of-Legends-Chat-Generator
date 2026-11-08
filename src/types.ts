@@ -104,6 +104,20 @@ export interface Popup {
   flip: boolean; // damage flies left instead of right
 }
 
+// The client's post-game screen. Players come from the Players tab.
+export interface Postgame {
+  result: "victory" | "defeat";
+  map: "HA" | "SR"; // picks the background and crest
+  mapName: string;
+  mode: string;
+  record: string;
+  duration: string; // also sets gold per minute
+  showGameId: boolean;
+  you: string; // player id of the gold row, "" for none
+  footer: string; // the line under the scoreboard, like an S rank
+  slots: "augments" | "none";
+}
+
 export interface Project {
   version: 1;
   settings: Settings;
@@ -113,5 +127,6 @@ export interface Project {
   banner?: Banner & { imageData?: string };
   popups?: Popup[];
   popupSpeed?: number; // 1 is the game's speed
+  postgame?: Postgame;
   popupIcons?: Record<string, string>; // custom icons as data URLs, by popup id
 }

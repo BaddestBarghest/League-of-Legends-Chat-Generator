@@ -20,6 +20,7 @@
         <button type="button" role="tab" data-tab="players" aria-selected="false">Players</button>
         <button type="button" role="tab" data-tab="chat" class="on" aria-selected="true">Chat</button>
         <button type="button" role="tab" data-tab="scoreboard" aria-selected="false">Scoreboard</button>
+        <button type="button" role="tab" data-tab="postgame" aria-selected="false">Post-game</button>
         <button type="button" role="tab" data-tab="banner" aria-selected="false">Victory</button>
         <button type="button" role="tab" data-tab="popups" aria-selected="false">Popups</button>
       </nav>
@@ -113,6 +114,38 @@
             <label>Ally turrets taken <input id="sb-ally-turrets" type="number" min="0" max="11" /></label>
             <label>Enemy turrets taken <input id="sb-enemy-turrets" type="number" min="0" max="11" /></label>
             <p class="hint">Team kills add up from each player's K. Champions, items and stats are on the Players tab.</p>
+          </div>
+        </section>
+      </div>
+      <div class="column" data-tab="postgame" hidden>
+        <section class="panel" aria-label="Post-game">
+          <div class="panel-head">
+            <h2>Post-game</h2>
+          </div>
+          <div class="pg-form">
+            <div class="pg-row">
+              <div id="pg-result" class="seg" role="group" aria-label="Result">
+                <button type="button" data-result="victory" class="on">Victory</button>
+                <button type="button" data-result="defeat">Defeat</button>
+              </div>
+              <div id="pg-map" class="seg" role="group" aria-label="Map">
+                <button type="button" data-map="HA" class="on">Howling Abyss</button>
+                <button type="button" data-map="SR">Summoner's Rift</button>
+              </div>
+            </div>
+            <div class="pg-grid">
+              <label class="field"><span class="field-label">Map name</span><input id="pg-mapName" type="text" /></label>
+              <label class="field"><span class="field-label">Mode</span><input id="pg-mode" type="text" /></label>
+              <label class="field"><span class="field-label">Record</span><input id="pg-record" type="text" /></label>
+              <label class="field"><span class="field-label">Game length</span><input id="pg-duration" type="text" placeholder="17:00" title="Also sets gold per minute" /></label>
+              <label class="field"><span class="field-label">You</span><select id="pg-you" title="Your row gets the gold edge and name"></select></label>
+              <label class="field"><span class="field-label">Slots before items</span>
+                <select id="pg-slots"><option value="augments">Augments</option><option value="none">None</option></select>
+              </label>
+            </div>
+            <label class="field"><span class="field-label">Line under the scoreboard</span><input id="pg-footer" type="text" placeholder="Infernal earned an S on Master Yi" /></label>
+            <label class="toggle"><input id="pg-gameid" type="checkbox" /> Show GameID</label>
+            <p class="hint">Players, champions, skins, items, augments, damage and gold are on the Players tab. Allies are Team 1.</p>
           </div>
         </section>
       </div>
