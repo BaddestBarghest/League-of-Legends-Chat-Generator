@@ -1,7 +1,7 @@
 import type { Channel, ChatLine, LineKind, Team } from "./types";
 import { championPicker } from "./namePicker";
 import { $, el } from "./dom";
-import { changed, makeLine, newId, onChange, playerOf, state } from "./state";
+import { changed, newId, onChange, playerOf, state } from "./state";
 import { findTimeIssues, fixTimes } from "./timeCheck";
 import { lineSegments } from "./render";
 
@@ -34,9 +34,6 @@ export function mountEditor(): void {
     if (openId && !state.lines.some((l) => l.id === openId)) openId = null;
     state.lines.forEach((l, i) => list.append(l.id === openId ? lineCard(l, i) : compactRow(l, i)));
   };
-
-  $<HTMLButtonElement>("#btn-add-chat").addEventListener("click", () => addLine(list, { channel: "team", body: "on my way" }));
-  $<HTMLButtonElement>("#btn-add-all").addEventListener("click", () => addLine(list, { channel: "all", body: "gg" }));
 
   $<HTMLButtonElement>("#btn-fix-times").addEventListener("click", () => {
     fixTimes(state.lines);
@@ -131,18 +128,6 @@ function markTimeIssues(list: HTMLElement): void {
   $<HTMLDivElement>("#time-warning").hidden = issues.size === 0;
   $<HTMLSpanElement>("#time-warning-text").textContent = parts.join(", ") + ".";
   $<HTMLButtonElement>("#btn-fix-times").hidden = order === 0;
-}
-
-// New lines copy the player from the last line, since chats usually come in runs.
-export function addLine(list: HTMLElement, patch: Partial<ChatLine>): void {
-  const prev = state.lines[state.lines.length - 1];
-  const base: Partial<ChatLine> = prev
-    ? { time: prev.time, team: prev.team === "system" ? "ally" : prev.team, name: prev.name, champion: prev.champion }
-    : {};
-  state.lines.push(makeLine({ ...base, ...patch }));
-  changed(true);
-  const bodies = list.querySelectorAll<HTMLInputElement>(".f-body");
-  bodies[bodies.length - 1]?.focus();
 }
 
 // Lines whose speaker is being typed in by hand rather than picked.

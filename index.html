@@ -33,21 +33,38 @@
       <section class="panel editor" aria-label="Chat lines">
         <div class="panel-head">
           <h2>Lines</h2>
-          <div class="add-row">
-            <button id="btn-add-chat" type="button">+ Chat</button>
-            <button id="btn-add-all" type="button">+ All chat</button>
-          </div>
         </div>
 
-        <div class="pinger">
-          <div class="pinger-head">
-            <label class="grow">Ping
-              <select id="ping-type" aria-label="Ping type"></select>
+        <div class="composer">
+          <div class="composer-top">
+            <label class="grow">From
+              <select id="cmp-from" aria-label="Who is talking"></select>
             </label>
-            <button id="btn-add-ping" class="primary" type="button">+ Add ping</button>
+            <label class="c-time-wrap">Time
+              <input id="cmp-time" type="text" placeholder="same" aria-label="Time for new lines" title="Leave blank to use the time of the line above" />
+            </label>
+            <div id="cmp-mode" class="seg" role="group" aria-label="Line type">
+              <button type="button" data-mode="chat" class="on">Chat</button>
+              <button type="button" data-mode="ping">Ping</button>
+            </div>
           </div>
-          <div id="ping-params" class="ping-params"></div>
-          <p class="hint">Uses the player from the last line. Empty fields use the example text.</p>
+          <div id="cmp-chat" class="composer-row">
+            <select id="cmp-tag" aria-label="Chat tag">
+              <option value="team">[Team]</option>
+              <option value="all">[All]</option>
+              <option value="">No tag</option>
+            </select>
+            <input id="cmp-msg" type="text" placeholder="Type a message and press Enter" aria-label="Message" />
+            <button id="cmp-add" class="primary" type="button">Add</button>
+          </div>
+          <div id="cmp-ping" hidden>
+            <div class="composer-row">
+              <select id="ping-type" aria-label="Ping type"></select>
+              <button id="btn-add-ping" class="primary" type="button">Add ping</button>
+            </div>
+            <div id="ping-params" class="ping-params"></div>
+          </div>
+          <p class="hint">Adds after the line you're editing, or at the end. Empty ping fields use the example text.</p>
         </div>
 
         <div id="time-warning" class="time-warning" hidden>
@@ -72,7 +89,7 @@
         <div class="panel-head">
           <h2>Preview</h2>
           <label class="toggle"><input id="s-time" type="checkbox" /> Timestamps</label>
-          <div class="seg" role="group" aria-label="Preview background">
+          <div id="bg-seg" class="seg" role="group" aria-label="Preview background">
             <button type="button" data-bg="checker" class="on">Transparent</button>
             <button type="button" data-bg="dark">Dark</button>
             <button type="button" data-bg="light">Light</button>

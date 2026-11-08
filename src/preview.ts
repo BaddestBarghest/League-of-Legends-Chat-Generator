@@ -23,9 +23,9 @@ export function mountPreview(): void {
     frame = requestAnimationFrame(() => void draw());
   };
 
-  document.querySelectorAll<HTMLButtonElement>(".seg button").forEach((b) =>
+  document.querySelectorAll<HTMLButtonElement>("#bg-seg button").forEach((b) =>
     b.addEventListener("click", () => {
-      document.querySelectorAll(".seg button").forEach((x) => x.classList.toggle("on", x === b));
+      document.querySelectorAll("#bg-seg button").forEach((x) => x.classList.toggle("on", x === b));
       stage.className = `stage bg-${b.dataset.bg}`;
     }),
   );
