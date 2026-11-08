@@ -87,12 +87,16 @@ export function defaultStats(): PlayerStats {
   return { level: 1, kills: 0, deaths: 0, assists: 0, cs: 0, spells: ["Flash", ""], keystone: "", secondary: "", items: ["", "", "", "", "", "", ""], respawn: 0, bounty: 0 };
 }
 
-// A player's stats, filled in with defaults for anything missing.
+// A player's stats, filled in with defaults for anything missing. Fills in
+// the existing object rather than replacing it, so editors holding on to it
+// keep editing what gets saved and drawn.
 export function statsOf(p: Player): PlayerStats {
-  const s = { ...defaultStats(), ...(p.stats ?? {}) };
-  s.items = Array.from({ length: 7 }, (_, i) => s.items[i] ?? "");
-  s.spells = [s.spells[0] ?? "", s.spells[1] ?? ""];
-  p.stats = s;
+  const s = (p.stats ??= defaultStats());
+  for (const [k, v] of Object.entries(defaultStats()) as [keyof PlayerStats, never][]) {
+    if (s[k] === undefined) s[k] = v;
+  }
+  while (s.items.length < 7) s.items.push("");
+  if (s.spells.length < 2) s.spells = [s.spells[0] ?? "", s.spells[1] ?? ""];
   return s;
 }
 
