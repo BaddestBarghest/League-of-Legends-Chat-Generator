@@ -44,11 +44,13 @@ export function editDistance(a: string, b: string): number {
 }
 
 // Lower is better. Infinity means not a match.
-function score(query: string, name: string): number {
+function score(query: string, name: string, extra: string[] = []): number {
   const q = normalize(query);
   if (!q) return Infinity;
-  const forms = [name, ...(ALIASES[name] ?? [])].map(normalize);
+  const forms = [name, ...(ALIASES[name] ?? []), ...extra].map(normalize);
   const words = name.toLowerCase().split(/[\s'.&]+/).map(normalize).filter(Boolean);
+  // Every word of the extra text too, so a typo deep in a sentence still matches.
+  const extraWords = extra.flatMap((x) => x.toLowerCase().split(/[\s'.&:!()-]+/)).map(normalize).filter((w) => w.length > 2);
 
   let best = Infinity;
   for (const n of forms) {
@@ -61,12 +63,20 @@ function score(query: string, name: string): number {
     if (typos <= allowed) best = Math.min(best, 4 + typos);
   }
   if (words.some((w) => w.startsWith(q))) best = Math.min(best, 2);
+  if (q.length > 3) {
+    const allowed = q.length <= 6 ? 1 : 2;
+    for (const w of extraWords) {
+      const typos = Math.min(editDistance(q, w), editDistance(q, w.slice(0, q.length)));
+      if (typos <= allowed) best = Math.min(best, 3.5 + typos);
+    }
+  }
   return best;
 }
 
-export function fuzzySearch(query: string, names: string[], limit = 8): string[] {
+// extra gives more text to match a name by, like a ping's chat text.
+export function fuzzySearch(query: string, names: string[], limit = 8, extra: Record<string, string[]> = {}): string[] {
   return names
-    .map((name) => ({ name, s: score(query, name) }))
+    .map((name) => ({ name, s: score(query, name, extra[name]) }))
     .filter((m) => m.s < Infinity)
     .sort((a, b) => a.s - b.s || a.name.length - b.name.length || a.name.localeCompare(b.name))
     .slice(0, limit)

@@ -12,6 +12,10 @@ export interface PickerOptions {
   // unless fieldIcon is false.
   icons?: IconKind;
   fieldIcon?: boolean;
+  // How many search matches to show. Defaults to 8, or 30 with icons.
+  limit?: number;
+  // More text to match each name by, beyond the name itself.
+  searchText?: Record<string, string[]>;
   onFocus?: () => Promise<void>;
 }
 
@@ -112,7 +116,7 @@ export function namePicker(input: HTMLInputElement, getNames: () => string[], op
     const known = names.indexOf(input.value);
     const browsing = opts.showAllWhenEmpty && (!input.value.trim() || (fromOpen && known >= 0));
     // Icon lists are easy to scan, so they show more at once.
-    matches = browsing ? names : fuzzySearch(input.value, names, opts.icons ? 30 : 8);
+    matches = browsing ? names : fuzzySearch(input.value, names, opts.limit ?? (opts.icons ? 30 : 8), opts.searchText);
     // Don't suggest when it's already spelled right.
     if (!browsing && matches.length === 1 && matches[0] === input.value) matches = [];
     active = browsing && known >= 0 ? known : 0;

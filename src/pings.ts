@@ -252,6 +252,12 @@ export const PINGS: PingDef[] = [
   { id: "sys-custom", group: OTHER, label: "Other system message", kind: "system", params: ["text"], build: (p) => g(p.text) },
 ];
 
+// The chat text a ping makes with example values, without color tags. Used
+// to find pings by what they say, like "flash" or "vision".
+export function pingText(def: PingDef): string {
+  return String(pingToLine(def, {}).body ?? "").replace(/<[^>]*>/g, "");
+}
+
 export function pingToLine(def: PingDef, values: Partial<Record<ParamKey, string>>): Partial<ChatLine> {
   const filled = {} as Record<ParamKey, string>;
   for (const k of Object.keys(PARAMS) as ParamKey[]) {

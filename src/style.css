@@ -241,7 +241,7 @@ button.link:hover { background: none; color: #fff; }
 .composer .grow { flex: 1; min-width: 160px; }
 .composer .c-time-wrap input { width: 76px; }
 .composer-row { display: flex; gap: 8px; align-items: center; }
-.composer-row #cmp-msg, .composer-row #ping-type { flex: 1; min-width: 0; }
+.composer-row #cmp-msg, .composer-row .ping-search { flex: 1; min-width: 0; }
 .composer select, .composer input[type="text"] { background: var(--surface); }
 .composer .hint { margin: 0; }
 .ping-params { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }

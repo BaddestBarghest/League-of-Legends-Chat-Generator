@@ -3,7 +3,7 @@ import { $, el } from "./dom";
 import { getOpenLineId, openLine } from "./editor";
 import { getAbilities, getRunes, loadAbilities } from "./gameData";
 import { championPicker, itemPicker, namePicker, spellPicker } from "./namePicker";
-import { PARAMS, PINGS, pingToLine, type ParamKey } from "./pings";
+import { PARAMS, PINGS, pingText, pingToLine, type ParamKey } from "./pings";
 import { changed, makeLine, onChange, playerOf, state } from "./state";
 
 // The box for adding lines: pick who's talking, then type a chat message or
@@ -13,7 +13,7 @@ export function mountComposer(): void {
   const time = $<HTMLInputElement>("#cmp-time");
   const message = $<HTMLInputElement>("#cmp-msg");
   const tag = $<HTMLSelectElement>("#cmp-tag");
-  const select = $<HTMLSelectElement>("#ping-type");
+  const pingSearch = $<HTMLInputElement>("#ping-type");
   const params = $<HTMLDivElement>("#ping-params");
   const values: Partial<Record<ParamKey, string>> = {};
 
@@ -76,6 +76,7 @@ export function mountComposer(): void {
   // ---- chat or ping
 
   const modes = document.querySelectorAll<HTMLButtonElement>("#cmp-mode button");
+  const addPing = $<HTMLButtonElement>("#btn-add-ping");
   modes.forEach((b) =>
     b.addEventListener("click", () => {
       modes.forEach((x) => x.classList.toggle("on", x === b));
@@ -86,19 +87,31 @@ export function mountComposer(): void {
 
   // ---- pings
 
-  const groups = new Map<string, HTMLOptGroupElement>();
-  for (const p of PINGS) {
-    if (!groups.has(p.group)) groups.set(p.group, el("optgroup", { label: p.group }));
-    groups.get(p.group)!.append(el("option", { value: p.id, textContent: p.label }));
-  }
-  select.append(...groups.values());
+  // Pings are picked by searching their names. Clicking the empty field lists
+  // them all. The field always ends up showing a real ping.
+  let pingId = PINGS[0].id;
+  pingSearch.value = PINGS[0].label;
+  pingSearch.className = "ping-search";
+  const slot = pingSearch.nextSibling;
+  const row = pingSearch.parentElement!;
+  const searchText = Object.fromEntries(PINGS.map((p) => [p.label, [pingText(p), p.group]]));
+  row.insertBefore(namePicker(pingSearch, () => PINGS.map((p) => p.label), { showAllWhenEmpty: true, limit: 12, searchText }), slot);
+  // Leaving without a choice puts the current ping back.
+  pingSearch.addEventListener("input", () => {
+    const found = PINGS.find((p) => p.label === pingSearch.value);
+    if (found && found.id !== pingId) {
+      pingId = found.id;
+      renderParams();
+    }
+  });
+  pingSearch.addEventListener("blur", () => (pingSearch.value = current().label));
 
   for (const [key, def] of Object.entries(PARAMS)) {
     if (!def.options) continue;
     document.body.append(el("datalist", { id: `dl-${key}` }, def.options.map((o) => el("option", { value: o }))));
   }
 
-  const current = () => PINGS.find((p) => p.id === select.value) ?? PINGS[0];
+  const current = () => PINGS.find((p) => p.id === pingId) ?? PINGS[0];
   const pingChampion = () => speaker()?.champion.trim() ?? "";
 
   const textField = (key: ParamKey) => {
@@ -163,8 +176,7 @@ export function mountComposer(): void {
     params.replaceChildren(...fields);
   };
 
-  select.addEventListener("change", renderParams);
-  $<HTMLButtonElement>("#btn-add-ping").addEventListener("click", () => insert(pingToLine(current(), values)));
+  addPing.addEventListener("click", () => insert(pingToLine(current(), values)));
 
   onChange((structural) => {
     if (!structural) return;
