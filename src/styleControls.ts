@@ -51,6 +51,16 @@ export async function loadFontFiles(files: File[]): Promise<string[]> {
   return done;
 }
 
+// After loading fonts: a custom font becomes the chat font, and game fonts go
+// where they belong.
+export function useLoadedFonts(loaded: string[]): void {
+  const custom = loaded.find((f) => !GAME_FONTS.some((g) => g.family === f));
+  if (custom) state.settings.fontFamily = custom;
+  else if (loaded.includes("Gill Sans MT Pro")) state.settings.fontFamily = GILL;
+  syncStyleControls();
+  changed(true);
+}
+
 // Says which font is really being drawn when Gill Sans is picked.
 function updateFontNote(): void {
   const note = $<HTMLParagraphElement>("#font-note");
@@ -104,18 +114,8 @@ export function mountStyleControls(): void {
     changed();
   });
 
-  // Font files stay in this browser and are remembered for next time.
-  $<HTMLInputElement>("#file-font").addEventListener("change", async (e) => {
-    const input = e.target as HTMLInputElement;
-    const loaded = await loadFontFiles([...(input.files ?? [])]);
-    input.value = "";
-    // A custom font becomes the chat font. Game fonts go where they belong.
-    const custom = loaded.find((f) => !GAME_FONTS.some((g) => g.family === f));
-    if (custom) s().fontFamily = custom;
-    else if (loaded.includes("Gill Sans MT Pro")) s().fontFamily = GILL;
-    syncStyleControls();
-    changed(true);
-  });
+  // Fonts are loaded in one place, the Fonts window.
+  $<HTMLButtonElement>("#style-fonts").addEventListener("click", () => $<HTMLButtonElement>("#btn-fonts").click());
 
   // Fonts can finish loading after this runs, so keep the note current.
   onChange((structural) => {

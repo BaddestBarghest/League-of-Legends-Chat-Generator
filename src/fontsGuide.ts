@@ -3,7 +3,7 @@ import { FONT_SOURCE, fontAvailable, GAME_FONTS, removeFont, savedFonts } from "
 import { GILL, gillInUse } from "./render";
 import { SCOREBOARD_FONT } from "./scoreboard";
 import { changed, onChange, state } from "./state";
-import { loadFontFiles } from "./styleControls";
+import { loadFontFiles, useLoadedFonts } from "./styleControls";
 
 interface Status {
   ok: boolean;
@@ -95,8 +95,7 @@ export function mountFontsGuide(): void {
     const input = e.target as HTMLInputElement;
     const loaded = await loadFontFiles([...(input.files ?? [])]);
     input.value = "";
-    if (loaded.includes("Gill Sans MT Pro")) state.settings.fontFamily = GILL;
-    changed(true);
+    useLoadedFonts(loaded);
   });
 
   onChange((structural) => {
