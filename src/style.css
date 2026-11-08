@@ -322,5 +322,6 @@ option { color: var(--text); }
 .line.open { border-color: var(--border-hover); }
 .tools .done { color: var(--text); border-color: var(--border); margin-left: 4px; }
 
-/* click to edit */
+/* click to edit, and keep line rows inside the panel on phones */
 #preview { cursor: pointer; }
+.line { grid-template-columns: minmax(0, 1fr); }
