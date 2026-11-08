@@ -41,9 +41,9 @@ const SAMPLE: Partial<ChatLine>[] = [
   { time: "23:31", team: "enemy", name: "ElBosque", champion: "Yorick", kind: "action", body: "purchased <gold>Last Whisper</gold>" },
   { time: "23:34", name: "Nessie", champion: "Ezreal", body: "<red>Draven</red> <gold>R</gold>" },
   { time: "23:35", name: "Nessie", champion: "Ezreal", body: "<red>Jax</red> <gold>R</gold>" },
-  { time: "23:02", team: "enemy", channel: "all", name: "Balcony", champion: "Jax", body: "aram?" },
-  { time: "22:25", name: "OldSparky", champion: "Irelia", kind: "action", body: "purchased <gold>Immortal Shieldbow</gold>" },
-  { time: "21:34", channel: "all", name: "Nessie", champion: "Ezreal", body: "hungry" },
+  { time: "23:42", team: "enemy", channel: "all", name: "Balcony", champion: "Jax", body: "aram?" },
+  { time: "23:58", name: "OldSparky", champion: "Irelia", kind: "action", body: "purchased <gold>Immortal Shieldbow</gold>" },
+  { time: "24:10", channel: "all", name: "Nessie", champion: "Ezreal", body: "hungry" },
 ];
 
 // Everything the app edits lives here. Call changed() after any edit.

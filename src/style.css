@@ -252,3 +252,22 @@ option { color: var(--text); }
 }
 .cb-list li { padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; color: var(--text); }
 .cb-list li[aria-selected="true"], .cb-list li:hover { background: var(--border); }
+
+/* time order check */
+.time-warning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(229, 82, 90, 0.45);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text);
+  background: rgba(229, 82, 90, 0.08);
+}
+.time-warning[hidden] { display: none; }
+.line.time-bad .f-time { border-color: var(--enemy); }
+.time-note { margin: 0; font-size: 12px; color: var(--enemy); }
+.time-note:empty { display: none; }

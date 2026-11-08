@@ -2,6 +2,7 @@ import type { Channel, ChatLine, LineKind, Team } from "./types";
 import { championPicker } from "./championPicker";
 import { $, el } from "./dom";
 import { changed, makeLine, newId, onChange, state } from "./state";
+import { findTimeIssues, fixTimes } from "./timeCheck";
 
 export function mountEditor(): void {
   const list = $<HTMLOListElement>("#lines");
@@ -18,10 +19,36 @@ export function mountEditor(): void {
   $<HTMLButtonElement>("#btn-add-chat").addEventListener("click", () => addLine(list, { channel: "team", body: "on my way" }));
   $<HTMLButtonElement>("#btn-add-all").addEventListener("click", () => addLine(list, { channel: "all", body: "gg" }));
 
+  $<HTMLButtonElement>("#btn-fix-times").addEventListener("click", () => {
+    fixTimes(state.lines);
+    changed(true);
+  });
+
   onChange((structural) => {
     if (structural) renderList();
+    markTimeIssues(list);
   });
   renderList();
+  markTimeIssues(list);
+}
+
+// Highlights lines whose time is out of order and shows the fix button.
+function markTimeIssues(list: HTMLElement): void {
+  const issues = findTimeIssues(state.lines);
+  for (const li of list.querySelectorAll<HTMLLIElement>(".line")) {
+    const problem = issues.get(li.dataset.id ?? "");
+    li.classList.toggle("time-bad", Boolean(problem));
+    const note = li.querySelector<HTMLElement>(".time-note");
+    if (note) note.textContent = problem ?? "";
+  }
+  const order = [...issues.values()].filter((m) => m.startsWith("Earlier")).length;
+  const format = issues.size - order;
+  const parts = [];
+  if (order) parts.push(`${order} ${order === 1 ? "time is" : "times are"} earlier than the line above`);
+  if (format) parts.push(`${format} ${format === 1 ? "time isn't" : "times aren't"} in mm:ss`);
+  $<HTMLDivElement>("#time-warning").hidden = issues.size === 0;
+  $<HTMLSpanElement>("#time-warning-text").textContent = parts.join(", ") + ".";
+  $<HTMLButtonElement>("#btn-fix-times").hidden = order === 0;
 }
 
 // New lines copy the player from the last line, since chats usually come in runs.
@@ -37,7 +64,7 @@ export function addLine(list: HTMLElement, patch: Partial<ChatLine>): void {
 }
 
 function lineCard(l: ChatLine, index: number): HTMLLIElement {
-  const li = el("li", { className: "line", "data-team": l.team });
+  const li = el("li", { className: "line", "data-team": l.team, "data-id": l.id });
   const set = (patch: Partial<ChatLine>) => {
     Object.assign(l, patch);
     changed();
@@ -103,6 +130,7 @@ function lineCard(l: ChatLine, index: number): HTMLLIElement {
     el("div", { className: "row" }, [time, team, channel, kind, tools]),
     el("div", { className: "row" }, [name, championPicker(champ)]),
     el("div", { className: "row" }, [body]),
+    el("p", { className: "time-note", "aria-live": "polite" }),
   );
   return li;
 }
