@@ -125,6 +125,10 @@
             <label class="field"><span class="field-label">Text</span>
               <input id="bn-text" type="text" maxlength="60" placeholder="Victory" aria-label="Banner text" />
             </label>
+            <div class="grid">
+              <label class="slider"><span>Size</span><output id="o-bn-size"></output><input id="bn-size" type="range" min="0.5" max="2" step="0.01" /></label>
+              <label class="slider"><span>Spacing</span><output id="o-bn-spacing"></output><input id="bn-spacing" type="range" min="-20" max="60" step="1" /></label>
+            </div>
             <div class="field">
               <span class="field-label">Background</span>
               <div id="bn-bg" class="seg" role="group" aria-label="Background">
@@ -137,7 +141,10 @@
               <label class="file-btn">Choose image<input id="bn-image" type="file" accept="image/*" hidden /></label>
               <label class="slider"><span>Image size</span><output id="o-bn-image-size"></output><input id="bn-image-size" type="range" min="0.25" max="3" step="0.01" /></label>
             </div>
-            <p class="hint">Leave the text blank for the game's word. Long text runs past the background, and the picture grows to fit.</p>
+            <div class="bn-foot">
+              <p class="hint">Leave the text blank for the game's word. Long text runs past the background, and the picture grows to fit.</p>
+              <button id="bn-reset" type="button" class="small">Reset size and spacing</button>
+            </div>
           </div>
         </section>
       </div>

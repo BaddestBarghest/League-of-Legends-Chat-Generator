@@ -1,7 +1,7 @@
 import type { Banner } from "./types";
 import { $, toast } from "./dom";
 import { setBannerImage } from "./imageStore";
-import { changed, onChange, state } from "./state";
+import { changed, defaultBanner, onChange, state } from "./state";
 
 // The controls for the Victory or Defeat screen.
 export function mountBannerPanel(): void {
@@ -10,8 +10,12 @@ export function mountBannerPanel(): void {
   const text = $<HTMLInputElement>("#bn-text");
   const imageOpts = $<HTMLDivElement>("#bn-image-opts");
 
-  type Num = "imageSize";
-  const sliders: [string, Num, (v: number) => string][] = [["image-size", "imageSize", (v) => `${Math.round(v * 100)}%`]];
+  type Num = "size" | "spacing" | "imageSize";
+  const sliders: [string, Num, (v: number) => string][] = [
+    ["size", "size", (v) => `${Math.round(v * 100)}%`],
+    ["spacing", "spacing", (v) => (v > 0 ? `+${v}px` : `${v}px`)],
+    ["image-size", "imageSize", (v) => `${Math.round(v * 100)}%`],
+  ];
 
   const sync = () => {
     const b = state.banner;
@@ -51,6 +55,12 @@ export function mountBannerPanel(): void {
       changed();
     });
   }
+  $<HTMLButtonElement>("#bn-reset").addEventListener("click", () => {
+    const d = defaultBanner();
+    Object.assign(state.banner, { size: d.size, spacing: d.spacing });
+    changed(true);
+  });
+
   $<HTMLInputElement>("#bn-image").addEventListener("change", async (e) => {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
