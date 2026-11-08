@@ -1,7 +1,7 @@
 import { getOpenLineId, openLine } from "./editor";
 import { $ } from "./dom";
 import { ensureFont, lineAt, measure, render } from "./render";
-import { loadScoreboardIcons, renderScoreboard, scoreboardSize } from "./scoreboard";
+import { loadScoreboardArt, renderScoreboard, scoreboardSize } from "./scoreboard";
 import { changed, onChange, state } from "./state";
 
 export function mountPreview(): void {
@@ -19,10 +19,10 @@ export function mountPreview(): void {
     const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
     let size;
     if (state.view === "scoreboard") {
-      const icons = await loadScoreboardIcons(state.players);
+      const art = await loadScoreboardArt(state.players);
       // A newer draw started while icons loaded, let that one win.
       if (ticket !== drawing) return;
-      renderScoreboard(canvas, state.players, settings, dpr, icons, state.scoreboard);
+      renderScoreboard(canvas, state.players, settings, dpr, art, state.scoreboard);
       size = scoreboardSize(state.players);
     } else {
       const open = lines.findIndex((l) => l.id === getOpenLineId());
