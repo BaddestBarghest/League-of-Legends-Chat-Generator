@@ -87,6 +87,13 @@ export function mountComposer(): void {
     showMode();
   };
   from.addEventListener("change", syncTag);
+  // Allies usually talk to their team and enemies are only seen in all chat,
+  // so pick that tag when the speaker changes. Either can still be chosen.
+  const defaultTag = () => {
+    const team = speaker()?.team;
+    if (team) tag.value = team === "enemy" ? "all" : "team";
+  };
+  from.addEventListener("change", defaultTag);
   message.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -207,6 +214,7 @@ export function mountComposer(): void {
   });
   fillFrom();
   syncTag();
+  defaultTag();
   renderParams();
 }
 
