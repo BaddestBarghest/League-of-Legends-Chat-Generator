@@ -69,10 +69,18 @@ export interface Settings {
   palette: Palette;
 }
 
+// The Victory or Defeat screen. Blank text uses the game's word.
+export interface Banner {
+  result: "victory" | "defeat";
+  text: string;
+  plaque: boolean;
+}
+
 export interface Project {
   version: 1;
   settings: Settings;
   lines: ChatLine[];
   players?: Player[];
   scoreboard?: { allyTurrets: number; enemyTurrets: number };
+  banner?: Banner;
 }

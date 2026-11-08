@@ -9,7 +9,7 @@ import { syncStyleControls } from "./styleControls";
 const LIMIT = 100;
 const TYPING_PAUSE = 700;
 
-const take = () => JSON.stringify({ lines: state.lines, players: state.players, scoreboard: state.scoreboard, settings: state.settings });
+const take = () => JSON.stringify({ lines: state.lines, players: state.players, scoreboard: state.scoreboard, banner: state.banner, settings: state.settings });
 
 let stack: string[] = [];
 let index = -1;
@@ -33,6 +33,7 @@ function restore(snap: string): void {
   state.lines = data.lines;
   state.players = data.players;
   state.scoreboard = data.scoreboard;
+  state.banner = data.banner;
   state.settings = data.settings;
   syncStyleControls();
   changed(true);

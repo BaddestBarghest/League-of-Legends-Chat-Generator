@@ -1,12 +1,12 @@
 import type { ChatLine, Palette, Project } from "./types";
 import { $, download, stamp, toast } from "./dom";
-import { changed, DEFAULT_SETTINGS, makeLine, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
+import { changed, DEFAULT_SETTINGS, defaultBanner, makeLine, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
 import { syncStyleControls } from "./styleControls";
 
 const STORAGE_KEY = "chat-log-maker:v1";
 
 function snapshot(): Project {
-  return { version: 1, settings: state.settings, lines: state.lines, players: state.players, scoreboard: state.scoreboard };
+  return { version: 1, settings: state.settings, lines: state.lines, players: state.players, scoreboard: state.scoreboard, banner: state.banner };
 }
 
 // Keeps colors the user picked, but swaps untouched old defaults for the new ones.
@@ -40,6 +40,7 @@ function apply(data: unknown): void {
     return makeLine({ ...old, channel, id: undefined });
   });
   state.scoreboard = { allyTurrets: 0, enemyTurrets: 0, ...(p.scoreboard ?? {}) };
+  state.banner = { ...defaultBanner(), ...(p.banner ?? {}) };
   // Saves from before the roster existed get one built from their lines.
   state.players = Array.isArray(p.players)
     ? p.players.map((pl) => ({ ...pl, id: newId() }))

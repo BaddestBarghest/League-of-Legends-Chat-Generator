@@ -69,12 +69,13 @@ export function mountFontsGuide(): void {
 
   // A nudge under the preview when the open tab isn't using the game font.
   const updateHint = () => {
-    const scoreboard = state.view === "scoreboard";
+    // The scoreboard and the Victory screen both use Beaufort.
+    const scoreboard = state.view !== "chat";
     const usingGill = state.settings.fontFamily === GILL;
     const st = scoreboard ? scoreboardStatus() : usingGill ? chatStatus() : { ok: true, text: "" };
     hint.hidden = st.ok;
     $<HTMLSpanElement>("#font-hint-text").textContent = scoreboard
-      ? "The scoreboard is using Spectral in place of the game's font."
+      ? `The ${state.view === "banner" ? "text" : "scoreboard"} is using Spectral in place of the game's font.`
       : `The chat is using ${gillInUse() ?? "Metrophobic"} in place of the game's font.`;
     dot.hidden = chatStatus().ok && scoreboardStatus().ok;
   };

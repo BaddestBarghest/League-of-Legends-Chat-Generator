@@ -2,6 +2,7 @@ import { getOpenLineId, openLine } from "./editor";
 import { $ } from "./dom";
 import { ensureFont, lineAt, measure, render } from "./render";
 import { loadScoreboardArt, renderScoreboard, scoreboardSize } from "./scoreboard";
+import { bannerSize, loadBannerArt, renderBanner } from "./banner";
 import { changed, onChange, state } from "./state";
 
 export function mountPreview(): void {
@@ -24,6 +25,11 @@ export function mountPreview(): void {
       if (ticket !== drawing) return;
       renderScoreboard(canvas, state.players, settings, dpr, art, state.scoreboard);
       size = scoreboardSize(state.players);
+    } else if (state.view === "banner") {
+      const art = await loadBannerArt(state.banner);
+      if (ticket !== drawing) return;
+      renderBanner(canvas, state.banner, dpr, art);
+      size = bannerSize();
     } else {
       const open = lines.findIndex((l) => l.id === getOpenLineId());
       render(canvas, lines, settings, dpr, { highlight: open });
@@ -45,8 +51,8 @@ export function mountPreview(): void {
     }),
   );
 
-  // The Chat and Scoreboard tabs. The preview shows whichever tab is open,
-  // and chat-only controls hide on the scoreboard.
+  // The Chat, Scoreboard and Victory tabs. The preview shows whichever tab
+  // is open, and chat-only controls hide on the others.
   const setView = (view: typeof state.view) => {
     state.view = view;
     document.querySelectorAll<HTMLButtonElement>("#tabs button").forEach((x) => {
@@ -59,12 +65,13 @@ export function mountPreview(): void {
     } catch {
       // only a convenience
     }
-    for (const id of ["#btn-frames", "#btn-copy", "#btn-txt"]) $<HTMLButtonElement>(id).hidden = view === "scoreboard";
+    const chat = view === "chat";
+    for (const id of ["#btn-frames", "#btn-copy", "#btn-txt"]) $<HTMLButtonElement>(id).hidden = !chat;
     // The scoreboard editor has many fields, so it gets the wider column.
     $<HTMLElement>(".layout").classList.toggle("sb", view === "scoreboard");
-    // Style only changes the chat, so it's hidden on the scoreboard.
-    $<HTMLElement>(".settings").hidden = view === "scoreboard";
-    $<HTMLElement>("#s-time").closest("label")!.hidden = view === "scoreboard";
+    // Style and timestamps only change the chat.
+    $<HTMLElement>(".settings").hidden = !chat;
+    $<HTMLElement>("#s-time").closest("label")!.hidden = !chat;
     canvas.title = view === "chat" ? "Click a line to edit it" : "";
     schedule();
   };
@@ -105,5 +112,5 @@ export function mountPreview(): void {
   } catch {
     // start on chat
   }
-  setView(last === "scoreboard" ? "scoreboard" : "chat");
+  setView(last === "scoreboard" || last === "banner" ? last : "chat");
 }

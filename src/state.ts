@@ -1,4 +1,4 @@
-import type { ChatLine, Player, PlayerStats, Settings } from "./types";
+import type { Banner, ChatLine, Player, PlayerStats, Settings } from "./types";
 
 export const DEFAULT_SETTINGS: Settings = {
   fontFamily: "Gill Sans",
@@ -82,13 +82,18 @@ export function playersFromLines(lines: ChatLine[]): Player[] {
 const sampleLines = SAMPLE.map(makeLine);
 
 // Everything the app edits lives here. Call changed() after any edit.
+export function defaultBanner(): Banner {
+  return { result: "victory", text: "", plaque: true };
+}
+
 export const state = {
   settings: structuredClone(DEFAULT_SETTINGS),
   lines: sampleLines,
   players: playersFromLines(sampleLines),
   scoreboard: { allyTurrets: 0, enemyTurrets: 0 },
+  banner: defaultBanner(),
   // Which picture the preview and PNG export show.
-  view: "chat" as "chat" | "scoreboard",
+  view: "chat" as "chat" | "scoreboard" | "banner",
 };
 
 export function defaultStats(): PlayerStats {

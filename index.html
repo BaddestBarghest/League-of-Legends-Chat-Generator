@@ -19,6 +19,7 @@
       <nav id="tabs" class="seg tabs" role="tablist" aria-label="Sections">
         <button type="button" role="tab" data-tab="chat" class="on" aria-selected="true">Chat</button>
         <button type="button" role="tab" data-tab="scoreboard" aria-selected="false">Scoreboard</button>
+        <button type="button" role="tab" data-tab="banner" aria-selected="false">Victory</button>
       </nav>
       <div class="top-actions">
         <div class="undo-group">
@@ -109,6 +110,24 @@
             <p class="hint">Team kills add up from each player's K. Players are shared with the Chat tab.</p>
           </div>
           <div id="sb-roster" class="roster sb-roster"></div>
+        </section>
+      </div>
+      <div class="column" data-tab="banner" hidden>
+        <section class="panel" aria-label="Victory or Defeat">
+          <div class="panel-head">
+            <h2>Victory or Defeat</h2>
+          </div>
+          <div class="banner-form">
+            <div id="bn-result" class="seg" role="group" aria-label="Result">
+              <button type="button" data-result="victory" class="on">Victory</button>
+              <button type="button" data-result="defeat">Defeat</button>
+            </div>
+            <label class="field"><span class="field-label">Text</span>
+              <input id="bn-text" type="text" maxlength="40" placeholder="Victory" aria-label="Banner text" />
+            </label>
+            <label class="toggle"><input id="bn-plaque" type="checkbox" /> Plaque behind the text</label>
+            <p class="hint">Leave the text blank for the game's word. Long text shrinks to fit the plaque.</p>
+          </div>
         </section>
       </div>
       <section class="panel preview-panel" aria-label="Preview and export">

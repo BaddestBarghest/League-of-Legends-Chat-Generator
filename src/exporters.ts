@@ -2,6 +2,7 @@ import JSZip from "jszip";
 import { $, download, stamp, toast } from "./dom";
 import { canvasToBlob, ensureFont, render, toPlainText } from "./render";
 import { loadScoreboardArt, renderScoreboard } from "./scoreboard";
+import { bannerWord, loadBannerArt, renderBanner } from "./banner";
 import { state } from "./state";
 
 async function exportPng(): Promise<void> {
@@ -12,6 +13,13 @@ async function exportPng(): Promise<void> {
     renderScoreboard(c, state.players, state.settings, state.settings.scale, art, state.scoreboard);
     download(await canvasToBlob(c), `scoreboard-${stamp()}.png`);
     toast("Scoreboard PNG downloaded.");
+    return;
+  }
+  if (state.view === "banner") {
+    renderBanner(c, state.banner, state.settings.scale, await loadBannerArt(state.banner));
+    const name = bannerWord(state.banner).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "banner";
+    download(await canvasToBlob(c), `${name}-${stamp()}.png`);
+    toast("PNG downloaded.");
     return;
   }
   if (!state.lines.length) return toast("Add a line first.");
