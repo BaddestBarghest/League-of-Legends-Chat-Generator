@@ -55,6 +55,20 @@ export interface RenderOptions {
   visibleCount?: number;
   // Leave out for a transparent background.
   background?: string;
+  // Preview only: a faint band behind this line, the one being edited.
+  highlight?: number;
+}
+
+// Which line sits at a y position (in unscaled px), for clicking the preview.
+export function lineAt(lines: ChatLine[], s: Settings, y: number): number {
+  const { laid } = measureWith(document.createElement("canvas").getContext("2d")!, lines, s);
+  const row = Math.floor((y - s.padding) / (s.fontSize * s.lineHeight));
+  let seen = 0;
+  for (let i = 0; i < laid.length; i++) {
+    seen += laid[i].length;
+    if (row < seen) return row < 0 ? -1 : i;
+  }
+  return -1;
 }
 
 // Wait for the font so we don't draw with a fallback.
@@ -181,6 +195,12 @@ export function render(
   const rows = laid.slice(0, opts.visibleCount ?? laid.length).flat();
   const totalRows = laid.reduce((n, l) => n + l.length, 0);
   const startRow = totalRows - rows.length;
+
+  if (opts.highlight !== undefined && opts.highlight >= 0 && opts.highlight < laid.length) {
+    const before = laid.slice(0, opts.highlight).reduce((n, l) => n + l.length, 0);
+    ctx.fillStyle = "rgba(255,255,255,0.08)";
+    ctx.fillRect(0, s.padding + (startRow + before) * lh, width, laid[opts.highlight].length * lh);
+  }
 
   rows.forEach((row, i) => {
     const y = s.padding + (startRow + i) * lh + baselineOffset;

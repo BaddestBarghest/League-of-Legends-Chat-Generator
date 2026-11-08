@@ -1,4 +1,5 @@
-import { ensureFont, measure, render } from "./render";
+import { getOpenLineId, openLine } from "./editor";
+import { ensureFont, lineAt, measure, render } from "./render";
 import { onChange, state } from "./state";
 
 export function mountPreview(): void {
@@ -12,7 +13,8 @@ export function mountPreview(): void {
     const { settings, lines } = state;
     // Draw at screen density so the preview stays sharp.
     const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
-    render(canvas, lines, settings, dpr);
+    const open = lines.findIndex((l) => l.id === getOpenLineId());
+    render(canvas, lines, settings, dpr, { highlight: open });
     const { width, height } = measure(lines, settings);
     canvas.style.width = `${width}px`;
     const s = settings.scale;
@@ -29,6 +31,15 @@ export function mountPreview(): void {
       stage.className = `stage bg-${b.dataset.bg}`;
     }),
   );
+
+  // Click a line in the preview to edit it.
+  canvas.addEventListener("click", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const { height } = measure(state.lines, state.settings);
+    const y = ((e.clientY - rect.top) / rect.height) * height;
+    const index = lineAt(state.lines, state.settings, y);
+    if (index >= 0) openLine(state.lines[index].id);
+  });
 
   onChange(schedule);
   void document.fonts.ready.then(schedule);

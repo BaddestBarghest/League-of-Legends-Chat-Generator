@@ -321,3 +321,6 @@ option { color: var(--text); }
 .line.compact.time-bad .sum-time { color: var(--enemy); }
 .line.open { border-color: var(--border-hover); }
 .tools .done { color: var(--text); border-color: var(--border); margin-left: 4px; }
+
+/* click to edit */
+#preview { cursor: pointer; }
