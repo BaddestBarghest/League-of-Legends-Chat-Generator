@@ -1,15 +1,14 @@
-import type { Player, PlayerStats } from "./types";
+import type { Player } from "./types";
 import { $, el } from "./dom";
-import { getItems, getRunes, getSpells, iconUrl } from "./gameData";
+import { getItems, getSpells, iconUrl } from "./gameData";
 import { championPicker, namePicker } from "./namePicker";
 import { changed, newId, onChange, state, statsOf } from "./state";
 
-// Players whose scoreboard stats are showing.
-const statsOpen = new Set<string>();
-
-// The Players panel. Set each player up once, then pick them anywhere.
-export function mountRoster(): void {
-  const panel = $<HTMLElement>("#roster");
+// A list of both teams' players. The Chat tab shows names and champions,
+// the Scoreboard tab shows the same players with their stats underneath.
+// Both edit the same players.
+export function mountRoster(selector: string, withStats: boolean): void {
+  const panel = $<HTMLElement>(selector);
 
   const render = () => {
     const column = (team: Player["team"], title: string) => {
@@ -25,7 +24,7 @@ export function mountRoster(): void {
       });
       return el("div", { className: "roster-col", "data-team": team }, [
         el("div", { className: "roster-head" }, [el("h3", { textContent: title }), add]),
-        ...players.map((p) => playerRow(p, render)),
+        ...players.map((p) => playerRow(p, render, withStats)),
         ...(players.length ? [] : [el("p", { className: "roster-empty", textContent: "No one yet" })]),
       ]);
     };
@@ -37,11 +36,13 @@ export function mountRoster(): void {
     // A focused button (like + Ally) is fine to rebuild.
     const typing = document.activeElement instanceof HTMLInputElement && panel.contains(document.activeElement);
     if (structural && !typing) render();
+    // The other list may have renamed someone, so refresh names even while typing stats.
+    else if (structural && withStats) refreshNames(panel);
   });
   render();
 }
 
-function playerRow(p: Player, render: () => void): HTMLElement {
+function playerRow(p: Player, render: () => void, withStats: boolean): HTMLElement {
   // Renaming a player renames them on every line they wrote.
   const update = (patch: Partial<Player>) => {
     for (const line of state.lines) {
@@ -80,22 +81,20 @@ function playerRow(p: Player, render: () => void): HTMLElement {
     render();
   });
 
-  const toggle = el("button", {
-    type: "button",
-    className: `p-stats${statsOpen.has(p.id) ? " on" : ""}`,
-    textContent: "Stats",
-    title: "Scoreboard stats",
-    "aria-expanded": String(statsOpen.has(p.id)),
-  });
-  toggle.addEventListener("click", () => {
-    if (statsOpen.has(p.id)) statsOpen.delete(p.id);
-    else statsOpen.add(p.id);
-    render();
-  });
-
-  const row = el("div", { className: "roster-row" }, [portrait, name, championPicker(champ), toggle, remove]);
-  if (!statsOpen.has(p.id)) return row;
+  const row = el("div", { className: "roster-row", "data-id": p.id }, [portrait, name, championPicker(champ), remove]);
+  if (!withStats) return row;
   return el("div", { className: "roster-entry" }, [row, statsPanel(p)]);
+}
+
+// Brings name and champion fields up to date without rebuilding the list.
+function refreshNames(panel: HTMLElement): void {
+  for (const row of panel.querySelectorAll<HTMLElement>(".roster-row")) {
+    const p = state.players.find((x) => x.id === row.dataset.id);
+    const [name, champ] = row.querySelectorAll<HTMLInputElement>("input");
+    if (!p || !name || !champ) continue;
+    if (document.activeElement !== name) name.value = p.name;
+    if (document.activeElement !== champ) champ.value = p.champion;
+  }
 }
 
 // Level, score, spells, runes and items, as the Tab scoreboard shows them.
@@ -123,20 +122,20 @@ function statsPanel(p: Player): HTMLElement {
 
   const setSpell = (i: 0 | 1) => (v: string) => (s.spells[i] = v);
   const setItem = (i: number) => (v: string) => (s.items[i] = v);
-  const set = (key: keyof Pick<PlayerStats, "keystone" | "secondary">) => (v: string) => (s[key] = v);
 
+  // Keystone and secondary rune stay in the data but aren't on the Tab
+  // scoreboard, so they don't get fields here.
   return el("div", { className: "stats" }, [
     el("div", { className: "stats-nums" }, [num("Level", "level", 18), num("K", "kills", 999), num("D", "deaths", 999), num("A", "assists", 999), num("CS", "cs", 9999)]),
-    el("div", { className: "stats-grid" }, [num("Dead for (s), 0 if alive", "respawn", 999), num("Bounty gold", "bounty", 9999)]),
-    el("div", { className: "stats-grid" }, [
+    el("div", { className: "stats-four" }, [
+      num("Dead (s)", "respawn", 999),
+      num("Bounty", "bounty", 9999),
       pick("Spell 1", s.spells[0], getSpells, setSpell(0), true),
       pick("Spell 2", s.spells[1], getSpells, setSpell(1), true),
-      pick("Keystone", s.keystone, getRunes, set("keystone")),
-      pick("Secondary", s.secondary, getRunes, set("secondary")),
     ]),
     el(
       "div",
-      { className: "stats-items" },
+      { className: "stats-four" },
       s.items.map((item, i) => pick(i === 6 ? "Trinket" : `Item ${i + 1}`, item, getItems, setItem(i))),
     ),
   ]);

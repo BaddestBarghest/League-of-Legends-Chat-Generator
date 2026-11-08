@@ -15,7 +15,8 @@ restoreAutosave();
 void refreshChampions();
 // Redraw once names and icons arrive from Riot.
 void loadGameData().then(() => changed(true));
-mountRoster();
+mountRoster("#roster", false);
+mountRoster("#sb-roster", true);
 mountEditor();
 mountComposer();
 mountStyleControls();

@@ -45,18 +45,27 @@ export function mountPreview(): void {
     }),
   );
 
-  // Chat or scoreboard. Chat-only controls hide on the scoreboard.
+  // The Chat and Scoreboard tabs. The preview shows whichever tab is open,
+  // and chat-only controls hide on the scoreboard.
   const setView = (view: typeof state.view) => {
     state.view = view;
-    document.querySelectorAll<HTMLButtonElement>("#view-seg button").forEach((x) => x.classList.toggle("on", x.dataset.view === view));
-    $<HTMLElement>("#sb-opts").hidden = view !== "scoreboard";
+    document.querySelectorAll<HTMLButtonElement>("#tabs button").forEach((x) => {
+      x.classList.toggle("on", x.dataset.tab === view);
+      x.setAttribute("aria-selected", String(x.dataset.tab === view));
+    });
+    document.querySelectorAll<HTMLElement>(".column[data-tab]").forEach((c) => (c.hidden = c.dataset.tab !== view));
+    try {
+      localStorage.setItem("chat-log-maker:tab", view);
+    } catch {
+      // only a convenience
+    }
     for (const id of ["#btn-frames", "#btn-copy", "#btn-txt"]) $<HTMLButtonElement>(id).hidden = view === "scoreboard";
     $<HTMLElement>("#s-time").closest("label")!.hidden = view === "scoreboard";
     canvas.title = view === "chat" ? "Click a line to edit it" : "";
     schedule();
   };
-  document.querySelectorAll<HTMLButtonElement>("#view-seg button").forEach((b) =>
-    b.addEventListener("click", () => setView(b.dataset.view as typeof state.view)),
+  document.querySelectorAll<HTMLButtonElement>("#tabs button").forEach((b) =>
+    b.addEventListener("click", () => setView(b.dataset.tab as typeof state.view)),
   );
 
   const turrets = (id: string, key: "allyTurrets" | "enemyTurrets") => {
@@ -85,5 +94,12 @@ export function mountPreview(): void {
 
   onChange(schedule);
   void document.fonts.ready.then(schedule);
-  setView(state.view);
+  // Reopen the tab that was open last time.
+  let last: string | null = null;
+  try {
+    last = localStorage.getItem("chat-log-maker:tab");
+  } catch {
+    // start on chat
+  }
+  setView(last === "scoreboard" ? "scoreboard" : "chat");
 }

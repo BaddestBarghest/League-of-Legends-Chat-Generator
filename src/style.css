@@ -328,8 +328,6 @@ option { color: var(--text); }
 
 /* player stats */
 .roster-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto; }
-.roster-row .p-stats { padding: 4px 8px; font-size: 11px; color: var(--muted); }
-.roster-row .p-stats.on { color: var(--text); background: var(--surface-2); }
 .roster-entry { display: flex; flex-direction: column; gap: 6px; }
 .stats {
   display: flex;
@@ -358,3 +356,16 @@ option { color: var(--text); }
 .sb-opts .hint { flex-basis: 100%; margin: 0; }
 .toggle[hidden] { display: none; }
 #preview[title=""] { cursor: default; }
+
+/* tabs */
+.top { flex-wrap: wrap; }
+.tabs { margin-right: auto; margin-left: 16px; }
+.tabs button { padding: 5px 14px; font-size: 13px; }
+.column[hidden] { display: none; }
+.sb-roster { margin-top: 12px; }
+@media (max-width: 1100px) { .sb-roster { grid-template-columns: 1fr; } }
+.roster-row { grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) auto; }
+.stats { gap: 6px; padding: 8px; }
+.stats-four { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.stats input { padding: 5px 6px; font-size: 13px; }
+@media (max-width: 480px) { .stats-four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

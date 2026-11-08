@@ -16,6 +16,10 @@
   <body>
     <header class="top">
       <h1>Chat Log Maker</h1>
+      <nav id="tabs" class="seg tabs" role="tablist" aria-label="Sections">
+        <button type="button" role="tab" data-tab="chat" class="on" aria-selected="true">Chat</button>
+        <button type="button" role="tab" data-tab="scoreboard" aria-selected="false">Scoreboard</button>
+      </nav>
       <div class="top-actions">
         <button id="btn-save" type="button">Save</button>
         <label class="file-btn">Open<input id="file-load" type="file" accept=".json,application/json" hidden /></label>
@@ -23,7 +27,7 @@
     </header>
 
     <main class="layout">
-      <div class="column">
+      <div class="column" data-tab="chat">
       <section class="panel" aria-label="Players">
         <div class="panel-head">
           <h2>Players</h2>
@@ -85,12 +89,21 @@
         </details>
       </section>
       </div>
+      <div class="column" data-tab="scoreboard" hidden>
+        <section class="panel" aria-label="Scoreboard">
+          <div class="panel-head">
+            <h2>Scoreboard</h2>
+          </div>
+          <div class="sb-opts">
+            <label>Ally turrets taken <input id="sb-ally-turrets" type="number" min="0" max="11" /></label>
+            <label>Enemy turrets taken <input id="sb-enemy-turrets" type="number" min="0" max="11" /></label>
+            <p class="hint">Team kills add up from each player's K. Players are shared with the Chat tab.</p>
+          </div>
+          <div id="sb-roster" class="roster sb-roster"></div>
+        </section>
+      </div>
       <section class="panel preview-panel" aria-label="Preview and export">
         <div class="panel-head">
-          <div id="view-seg" class="seg" role="group" aria-label="What to show">
-            <button type="button" data-view="chat" class="on">Chat</button>
-            <button type="button" data-view="scoreboard">Scoreboard</button>
-          </div>
           <label class="toggle"><input id="s-time" type="checkbox" /> Timestamps</label>
           <div id="bg-seg" class="seg" role="group" aria-label="Preview background">
             <button type="button" data-bg="checker" class="on">Transparent</button>
@@ -102,11 +115,6 @@
           <canvas id="preview" aria-label="Rendered chat log. Click a line to edit it." title="Click a line to edit it"></canvas>
         </div>
         <p id="dims" class="dims"></p>
-        <div id="sb-opts" class="sb-opts" hidden>
-          <label>Ally turrets taken <input id="sb-ally-turrets" type="number" min="0" max="11" /></label>
-          <label>Enemy turrets taken <input id="sb-enemy-turrets" type="number" min="0" max="11" /></label>
-          <p class="hint">Kills add up from each player's stats. Set stats with the Stats button in Players.</p>
-        </div>
 
         <div class="export">
           <button id="btn-png" class="primary" type="button">Download PNG</button>
