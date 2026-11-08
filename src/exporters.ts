@@ -3,6 +3,8 @@ import { $, download, stamp, toast } from "./dom";
 import { canvasToBlob, ensureFont, render, toPlainText } from "./render";
 import { loadScoreboardArt, renderScoreboard } from "./scoreboard";
 import { bannerWord, loadBannerArt, renderBanner } from "./banner";
+import { loadPopupArt, renderPopups } from "./popups";
+import { playback } from "./popupPanel";
 import { state } from "./state";
 
 async function exportPng(): Promise<void> {
@@ -13,6 +15,13 @@ async function exportPng(): Promise<void> {
     renderScoreboard(c, state.players, state.settings, state.settings.scale, art, state.scoreboard);
     download(await canvasToBlob(c), `scoreboard-${stamp()}.png`);
     toast("Scoreboard PNG downloaded.");
+    return;
+  }
+  if (state.view === "popups") {
+    if (!state.popups.length) return toast("Add a popup first.");
+    renderPopups(c, state.popups, playback.time, state.settings.scale, await loadPopupArt(state.popups));
+    download(await canvasToBlob(c), `popups-${stamp()}.png`);
+    toast(`PNG of ${playback.time.toFixed(2)}s downloaded.`);
     return;
   }
   if (state.view === "banner") {

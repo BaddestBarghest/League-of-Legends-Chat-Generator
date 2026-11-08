@@ -1,4 +1,5 @@
-import type { Banner, ChatLine, Player, PlayerStats, Settings } from "./types";
+import type { Banner, ChatLine, Player, PlayerStats, Popup, Settings } from "./types";
+import { POPUP_TYPES } from "./popupTypes";
 
 export const DEFAULT_SETTINGS: Settings = {
   fontFamily: "Gill Sans",
@@ -86,14 +87,37 @@ export function defaultBanner(): Banner {
   return { result: "victory", text: "", background: "plaque", size: 1, spacing: 0, imageSize: 1 };
 }
 
+// A popup with its template's look. Override anything with patch.
+export function makePopup(type: string, patch: Partial<Popup> = {}): Popup {
+  const t = POPUP_TYPES[type] ?? POPUP_TYPES.gold;
+  return {
+    id: newId(),
+    type,
+    text: t.text,
+    color: t.color,
+    outlineColor: t.outlineColor,
+    icon: t.icon,
+    iconSide: t.iconSide,
+    size: 1,
+    start: 0,
+    x: 0,
+    y: 0,
+    flip: false,
+    ...patch,
+  };
+}
+
+export const defaultPopups = (): Popup[] => [makePopup("gold"), makePopup("xp", { start: 0.15 })];
+
 export const state = {
   settings: structuredClone(DEFAULT_SETTINGS),
   lines: sampleLines,
   players: playersFromLines(sampleLines),
   scoreboard: { allyTurrets: 0, enemyTurrets: 0 },
   banner: defaultBanner(),
+  popups: defaultPopups(),
   // Which picture the preview and PNG export show.
-  view: "chat" as "chat" | "scoreboard" | "banner",
+  view: "chat" as "chat" | "scoreboard" | "banner" | "popups",
 };
 
 export function defaultStats(): PlayerStats {

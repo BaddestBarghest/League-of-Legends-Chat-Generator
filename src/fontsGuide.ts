@@ -2,6 +2,7 @@ import { $, el, toast } from "./dom";
 import { FONT_SOURCE, fontAvailable, GAME_FONTS, removeFont, savedFonts } from "./fontStore";
 import { GILL, gillInUse } from "./render";
 import { SCOREBOARD_FONT } from "./scoreboard";
+import { POPUP_FONT } from "./popups";
 import { changed, onChange, state } from "./state";
 import { loadFontFiles, useLoadedFonts } from "./styleControls";
 
@@ -22,6 +23,10 @@ function scoreboardStatus(): Status {
   return fontAvailable(SCOREBOARD_FONT, "bold") ? { ok: true, text: "Loaded" } : { ok: false, text: "Not loaded, using Spectral" };
 }
 
+function popupStatus(): Status {
+  return fontAvailable(POPUP_FONT, "bold") ? { ok: true, text: "Loaded" } : { ok: false, text: "Not loaded, using Source Sans 3" };
+}
+
 export function mountFontsGuide(): void {
   const dialog = $<HTMLDialogElement>("#fonts-dialog");
   const list = $<HTMLDivElement>("#fonts-list");
@@ -30,7 +35,7 @@ export function mountFontsGuide(): void {
   const dot = $<HTMLSpanElement>("#fonts-dot");
 
   const render = async () => {
-    const statuses = [chatStatus(), scoreboardStatus()];
+    const statuses = [chatStatus(), scoreboardStatus(), popupStatus()];
     list.replaceChildren(
       ...GAME_FONTS.map((f, i) => {
         const st = statuses[i];
@@ -69,15 +74,23 @@ export function mountFontsGuide(): void {
 
   // A nudge under the preview when the open tab isn't using the game font.
   const updateHint = () => {
-    // The scoreboard and the Victory screen both use Beaufort.
-    const scoreboard = state.view !== "chat";
-    const usingGill = state.settings.fontFamily === GILL;
-    const st = scoreboard ? scoreboardStatus() : usingGill ? chatStatus() : { ok: true, text: "" };
+    const view = state.view;
+    let st: Status = { ok: true, text: "" };
+    let text = "";
+    if (view === "popups") {
+      st = popupStatus();
+      text = "The popups are using Source Sans 3 in place of the game's font.";
+    } else if (view !== "chat") {
+      // The scoreboard and the Victory screen both use Beaufort.
+      st = scoreboardStatus();
+      text = `The ${view === "banner" ? "text" : "scoreboard"} is using Spectral in place of the game's font.`;
+    } else if (state.settings.fontFamily === GILL) {
+      st = chatStatus();
+      text = `The chat is using ${gillInUse() ?? "Metrophobic"} in place of the game's font.`;
+    }
     hint.hidden = st.ok;
-    $<HTMLSpanElement>("#font-hint-text").textContent = scoreboard
-      ? `The ${state.view === "banner" ? "text" : "scoreboard"} is using Spectral in place of the game's font.`
-      : `The chat is using ${gillInUse() ?? "Metrophobic"} in place of the game's font.`;
-    dot.hidden = chatStatus().ok && scoreboardStatus().ok;
+    $<HTMLSpanElement>("#font-hint-text").textContent = text;
+    dot.hidden = chatStatus().ok && scoreboardStatus().ok && popupStatus().ok;
   };
 
   const openGuide = () => {

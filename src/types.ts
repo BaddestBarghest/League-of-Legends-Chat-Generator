@@ -79,6 +79,24 @@ export interface Banner {
   imageSize: number; // the user's picture, 1 fits the plaque's space
 }
 
+export type PopupIcon = "none" | "gold" | "crit" | "critMagic" | "critTrue" | "armor" | "magicResist" | "custom";
+
+// One floating text popup. It starts from a template and every part can be changed.
+export interface Popup {
+  id: string;
+  type: string; // template it moves like
+  text: string;
+  color: string;
+  outlineColor: string;
+  icon: PopupIcon;
+  iconSide: "left" | "right";
+  size: number; // 1 is the game's size
+  start: number; // seconds into the clip
+  x: number; // offset from the champion, in pixels
+  y: number;
+  flip: boolean; // damage flies left instead of right
+}
+
 export interface Project {
   version: 1;
   settings: Settings;
@@ -86,4 +104,6 @@ export interface Project {
   players?: Player[];
   scoreboard?: { allyTurrets: number; enemyTurrets: number };
   banner?: Banner & { imageData?: string };
+  popups?: Popup[];
+  popupIcons?: Record<string, string>; // custom icons as data URLs, by popup id
 }

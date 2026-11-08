@@ -1,9 +1,10 @@
-// The picture a user puts behind the Victory text. It's kept in IndexedDB
-// rather than in the project, so undo history and autosave stay small.
+// Pictures the user adds: the one behind the Victory text, and popup icons.
+// They're kept in IndexedDB rather than in the project, so undo history and
+// autosave stay small.
 
 const DB = "chat-log-maker-images";
 const STORE = "images";
-const KEY = "banner";
+const BANNER = "banner";
 
 function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -23,35 +24,41 @@ async function run<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRe
   });
 }
 
-let blob: Blob | null = null;
-let image: Promise<HTMLImageElement | null> | null = null;
+const blobs = new Map<string, Blob | null>();
+const images = new Map<string, Promise<HTMLImageElement | null>>();
 
 // Throws if the file isn't a picture the browser can draw.
-export async function setBannerImage(file: Blob): Promise<void> {
+export async function setImage(key: string, file: Blob): Promise<void> {
   const img = await decode(file);
-  blob = file;
-  image = Promise.resolve(img);
+  blobs.set(key, file);
+  images.set(key, Promise.resolve(img));
   try {
-    await run("readwrite", (s) => s.put(file, KEY));
+    await run("readwrite", (s) => s.put(file, key));
   } catch {
     // Storage is off (private window). It still works until the page closes.
   }
 }
 
-export async function bannerImageBlob(): Promise<Blob | null> {
-  if (blob) return blob;
+export async function imageBlob(key: string): Promise<Blob | null> {
+  if (blobs.has(key)) return blobs.get(key)!;
+  let b: Blob | null = null;
   try {
-    blob = ((await run("readonly", (s) => s.get(KEY))) as Blob | undefined) ?? null;
+    b = ((await run("readonly", (s) => s.get(key))) as Blob | undefined) ?? null;
   } catch {
-    blob = null;
+    // nothing saved
   }
-  return blob;
+  blobs.set(key, b);
+  return b;
 }
 
-export function bannerImage(): Promise<HTMLImageElement | null> {
-  image ??= bannerImageBlob().then((b) => (b ? decode(b).catch(() => null) : null));
-  return image;
+export function storedImage(key: string): Promise<HTMLImageElement | null> {
+  if (!images.has(key)) images.set(key, imageBlob(key).then((b) => (b ? decode(b).catch(() => null) : null)));
+  return images.get(key)!;
 }
+
+export const setBannerImage = (file: Blob) => setImage(BANNER, file);
+export const bannerImageBlob = () => imageBlob(BANNER);
+export const bannerImage = () => storedImage(BANNER);
 
 function decode(b: Blob): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {

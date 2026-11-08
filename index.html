@@ -20,6 +20,7 @@
         <button type="button" role="tab" data-tab="chat" class="on" aria-selected="true">Chat</button>
         <button type="button" role="tab" data-tab="scoreboard" aria-selected="false">Scoreboard</button>
         <button type="button" role="tab" data-tab="banner" aria-selected="false">Victory</button>
+        <button type="button" role="tab" data-tab="popups" aria-selected="false">Popups</button>
       </nav>
       <div class="top-actions">
         <div class="undo-group">
@@ -146,6 +147,24 @@
               <button id="bn-reset" type="button" class="small">Reset size and spacing</button>
             </div>
           </div>
+        </section>
+      </div>
+      <div class="column" data-tab="popups" hidden>
+        <section class="panel" aria-label="Popups">
+          <div class="panel-head">
+            <h2>Popups</h2>
+            <div class="add-row">
+              <select id="pp-add-type" aria-label="Popup type to add"></select>
+              <button id="pp-add" type="button" class="small">Add</button>
+            </div>
+          </div>
+          <div class="pp-play">
+            <button id="pp-play" type="button" class="small">Play</button>
+            <input id="pp-time" type="range" min="0" max="1" step="0.01" aria-label="Time" />
+            <output id="pp-clock"></output>
+          </div>
+          <p class="hint">Each popup starts from the game's look and motion. Change its text, colors or icon to make your own. Download PNG saves the moment shown.</p>
+          <div id="pp-list" class="pp-list"></div>
         </section>
       </div>
       <section class="panel preview-panel" aria-label="Preview and export">

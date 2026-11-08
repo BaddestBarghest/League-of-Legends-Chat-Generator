@@ -25,6 +25,12 @@ export const GAME_FONTS = [
     use: "Scoreboard and Victory",
     match: /beaufort/i,
   },
+  {
+    family: "Spiegel",
+    file: "spiegel-bold.otf",
+    use: "Popups",
+    match: /spiegel/i,
+  },
 ] as const;
 
 export const FONT_SOURCE = "https://raw.communitydragon.org/latest/game/assets/ux/fonts/";

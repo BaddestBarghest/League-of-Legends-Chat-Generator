@@ -3,6 +3,8 @@ import { $ } from "./dom";
 import { ensureFont, lineAt, measure, render } from "./render";
 import { loadScoreboardArt, renderScoreboard, scoreboardSize } from "./scoreboard";
 import { bannerSize, loadBannerArt, renderBanner } from "./banner";
+import { loadPopupArt, popupsSize, renderPopups } from "./popups";
+import { onPlayback, playback } from "./popupPanel";
 import { changed, onChange, state } from "./state";
 
 export function mountPreview(): void {
@@ -25,6 +27,11 @@ export function mountPreview(): void {
       if (ticket !== drawing) return;
       renderScoreboard(canvas, state.players, settings, dpr, art, state.scoreboard);
       size = scoreboardSize(state.players);
+    } else if (state.view === "popups") {
+      const art = await loadPopupArt(state.popups);
+      if (ticket !== drawing) return;
+      renderPopups(canvas, state.popups, playback.time, dpr, art);
+      size = popupsSize(state.popups, art);
     } else if (state.view === "banner") {
       const art = await loadBannerArt(state.banner);
       if (ticket !== drawing) return;
@@ -51,7 +58,7 @@ export function mountPreview(): void {
     }),
   );
 
-  // The Chat, Scoreboard and Victory tabs. The preview shows whichever tab
+  // The Chat, Scoreboard, Victory and Popups tabs. The preview shows whichever tab
   // is open, and chat-only controls hide on the others.
   const setView = (view: typeof state.view) => {
     state.view = view;
@@ -112,5 +119,6 @@ export function mountPreview(): void {
   } catch {
     // start on chat
   }
-  setView(last === "scoreboard" || last === "banner" ? last : "chat");
+  onPlayback(schedule);
+  setView(last === "scoreboard" || last === "banner" || last === "popups" ? last : "chat");
 }

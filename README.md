@@ -15,6 +15,7 @@ Make League style in-game chat logs, Tab scoreboards and Victory or Defeat scree
 - Autocomplete for champions, items, runes, summoner spells and abilities, with typo-tolerant search
 - Tab scoreboard: switch the preview to Scoreboard to draw both teams with champion portraits, spells, items, level, CS, K/D/A, bounties and respawn timers. Set each player's stats with the Stats button in Players
 - Victory and Defeat: the end of game plaque from the game's own art, with any text you like. The lettering is drawn in Beaufort for LOL Bold with the gold or copper finish matched to Riot's word art
+- Popups: the floating text over champions, like +21 gold, +62xp, LEVEL UP!, heals and damage numbers with crit icons. Each starts from the game's own look and motion, and the text, colors and icon can all be changed. Play them back and download any moment as a PNG
 - Timestamps you can turn off, and a warning when a line's time goes back in time
 - Color tags in messages: `<gold>`, `<red>`, `<blue>`, `<ping>`, `<info>`, `<b>` for bold, or any hex like `<#ff66cc>text</>`
 - Transparent PNG export at 1x, 2x or 3x, with optional line wrapping
@@ -47,17 +48,18 @@ Pushing to `main` builds the site and deploys it with GitHub Actions. In the rep
 
 ## Game fonts
 
-League uses two fonts that this site can't share, because Riot licenses them from type foundries:
+League uses three fonts that this site can't share, because Riot licenses them from type foundries:
 
 | Font | Used for | File |
 | --- | --- | --- |
 | Gill Sans MT Pro Medium | Chat | [gillsansmtpro-medium.otf](https://raw.communitydragon.org/latest/game/assets/ux/fonts/gillsansmtpro-medium.otf) |
 | Beaufort for LOL Bold | Scoreboard and Victory | [beaufortforlol-bold.otf](https://raw.communitydragon.org/latest/game/assets/ux/fonts/beaufortforlol-bold.otf) |
+| Spiegel Bold | Popups | [spiegel-bold.otf](https://raw.communitydragon.org/latest/game/assets/ux/fonts/spiegel-bold.otf) |
 
-Without them the site uses close free stand-ins: Metrophobic for chat and Spectral for the scoreboard and Victory text. For an exact match:
+Without them the site uses close free stand-ins: Metrophobic for chat, Spectral for the scoreboard and Victory text, and Source Sans 3 for popups. For an exact match:
 
-1. Download both files from the links above. They come from [CommunityDragon](https://raw.communitydragon.org/latest/game/assets/ux/fonts/), which hosts League's game files.
-2. Open the site, click **Fonts** in the top bar, then **Load font files**, and pick both files.
+1. Download the files from the links above. They come from [CommunityDragon](https://raw.communitydragon.org/latest/game/assets/ux/fonts/), which hosts League's game files.
+2. Open the site, click **Fonts** in the top bar, then **Load font files**, and pick the files.
 
 The fonts are saved in your browser, so you only do this once per browser. They're never uploaded. The Fonts window shows which fonts are active, and a dot on the Fonts button means one is missing.
 

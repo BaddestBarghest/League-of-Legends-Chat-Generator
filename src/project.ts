@@ -1,14 +1,15 @@
 import type { Banner, ChatLine, Palette, Project } from "./types";
 import { $, download, stamp, toast } from "./dom";
-import { changed, DEFAULT_SETTINGS, defaultBanner, makeLine, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
+import { changed, DEFAULT_SETTINGS, defaultBanner, defaultPopups, makeLine, makePopup, newId, OLD_DEFAULT_PALETTES, OLD_DEFAULT_TEXT, onChange, playersFromLines, state } from "./state";
 import { syncStyleControls } from "./styleControls";
-import { bannerImageBlob, blobToDataUrl, dataUrlToBlob, setBannerImage } from "./imageStore";
+import { bannerImageBlob, blobToDataUrl, dataUrlToBlob, imageBlob, setBannerImage, setImage } from "./imageStore";
+import { customIconKey } from "./popups";
 
 // Storage keys keep the old name so saved work carries over.
 const STORAGE_KEY = "chat-log-maker:v1";
 
 function snapshot(): Project {
-  return { version: 1, settings: state.settings, lines: state.lines, players: state.players, scoreboard: state.scoreboard, banner: state.banner };
+  return { version: 1, settings: state.settings, lines: state.lines, players: state.players, scoreboard: state.scoreboard, banner: state.banner, popups: state.popups };
 }
 
 // Keeps colors the user picked, but swaps untouched old defaults for the new ones.
@@ -45,6 +46,7 @@ function apply(data: unknown): void {
   // Early saves had a plaque checkbox.
   const { imageData: _, plaque, ...banner } = (p.banner ?? {}) as Partial<Banner> & { imageData?: string; plaque?: boolean };
   state.banner = { ...defaultBanner(), ...(plaque === false ? { background: "none" as const } : {}), ...banner };
+  state.popups = Array.isArray(p.popups) ? p.popups.map((x) => makePopup(x.type, { ...x })) : defaultPopups();
   // Saves from before the roster existed get one built from their lines.
   state.players = Array.isArray(p.players)
     ? p.players.map((pl) => ({ ...pl, id: newId() }))
@@ -75,6 +77,12 @@ export function mountProjectFiles(): void {
     const data = snapshot();
     const img = state.banner.background === "image" ? await bannerImageBlob() : null;
     if (img) data.banner = { ...state.banner, imageData: await blobToDataUrl(img) };
+    const icons: Record<string, string> = {};
+    for (const p of state.popups) {
+      const b = p.icon === "custom" ? await imageBlob(customIconKey(p.id)) : null;
+      if (b) icons[p.id] = await blobToDataUrl(b);
+    }
+    if (Object.keys(icons).length) data.popupIcons = icons;
     download(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `summoner-studio-${stamp()}.json`);
   });
 
@@ -87,6 +95,9 @@ export function mountProjectFiles(): void {
       apply(data);
       const pic = (data as Project).banner?.imageData;
       if (pic) await setBannerImage(await dataUrlToBlob(pic)).catch(() => toast("The file's Victory picture couldn't be opened."));
+      for (const [id, url] of Object.entries((data as Project).popupIcons ?? {})) {
+        await setImage(customIconKey(id), await dataUrlToBlob(url)).catch(() => {});
+      }
       syncStyleControls();
       changed(true);
       toast(`Loaded ${state.lines.length} lines.`);

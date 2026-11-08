@@ -5,3 +5,4 @@ import "@fontsource/convergence/400.css";
 import "@fontsource/quattrocento-sans/400.css";
 import "@fontsource/imprima/400.css";
 import "@fontsource/spectral/700.css";
+import "@fontsource/source-sans-3/700.css";
