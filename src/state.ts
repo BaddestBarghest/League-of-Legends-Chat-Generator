@@ -92,7 +92,7 @@ export const state = {
 };
 
 export function defaultStats(): PlayerStats {
-  return { level: 1, kills: 0, deaths: 0, assists: 0, cs: 0, spells: ["Flash", ""], keystone: "", secondary: "", items: ["", "", "", "", "", "", ""], respawn: 0, bounty: 0 };
+  return { level: 1, kills: 0, deaths: 0, assists: 0, cs: 0, spells: ["Flash", ""], keystone: "", secondary: "", items: ["", "", "", "", "", "", "Stealth Ward"], respawn: 0, bounty: 0 };
 }
 
 // A player's stats, filled in with defaults for anything missing. Fills in
