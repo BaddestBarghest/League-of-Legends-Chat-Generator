@@ -55,11 +55,17 @@ export function mountComposer(): void {
 
   const addChat = () => {
     if (!message.value.trim()) return message.focus();
-    insert({ kind: "chat", channel: tag.value as Channel, body: message.value });
+    // System messages never go to team or all chat.
+    const system = from.value === "system";
+    insert({ kind: "chat", channel: system ? "" : (tag.value as Channel), body: message.value });
     message.value = "";
     message.focus();
   };
   $<HTMLButtonElement>("#cmp-add").addEventListener("click", addChat);
+
+  // The [Team]/[All] menu only applies to players.
+  const syncTag = () => (tag.hidden = from.value === "system");
+  from.addEventListener("change", syncTag);
   message.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -163,10 +169,12 @@ export function mountComposer(): void {
   onChange((structural) => {
     if (!structural) return;
     fillFrom();
+    syncTag();
     // Roster edits change the target lists, unless a field here is being typed in.
     if (!params.contains(document.activeElement)) renderParams();
   });
   fillFrom();
+  syncTag();
   renderParams();
 }
 

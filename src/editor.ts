@@ -156,7 +156,7 @@ function speakerSelect(l: ChatLine): HTMLSelectElement {
     customSpeaker.delete(l.id);
     const picked = state.players.find((p) => p.id === select.value);
     if (picked) Object.assign(l, { team: picked.team, name: picked.name, champion: picked.champion });
-    else if (select.value === "system") l.team = "system";
+    else if (select.value === "system") Object.assign(l, { team: "system", channel: "" });
     else {
       customSpeaker.add(l.id);
       if (l.team === "system") l.team = "ally";
