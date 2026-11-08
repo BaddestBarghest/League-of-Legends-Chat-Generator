@@ -125,3 +125,51 @@ select:hover, input[type="text"]:hover, input[type="number"]:hover { border-colo
 .bg-dark { background: #0f1a1d; }
 .bg-light { background: #b9c6b3; }
 .dims { color: var(--faint); font-size: 12px; margin: 8px 2px 0; }
+
+/* line editor */
+.add-row { display: flex; gap: 6px; }
+.lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.line {
+  position: relative;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 8px 8px 12px;
+  display: grid;
+  gap: 6px;
+}
+.line::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--ally);
+}
+.line[data-team="enemy"]::before { background: var(--enemy); }
+.line[data-team="system"]::before { background: var(--gold); }
+.line .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.line input[type="text"], .line select { background: var(--surface); }
+.line .f-time { width: 64px; }
+.line .f-name { flex: 1 1 120px; }
+.line .f-champ { flex: 1 1 100px; }
+.line .f-body { flex: 1 1 100%; width: 100%; }
+.line[data-team="system"] .f-name,
+.line[data-team="system"] .f-champ,
+.line[data-team="system"] .all-wrap,
+.line[data-team="system"] .f-kind { display: none; }
+.all-wrap { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; }
+input[type="checkbox"] { accent-color: var(--text); }
+.tools { display: flex; gap: 2px; margin-left: auto; }
+.tools button { border-color: transparent; padding: 2px 7px; font-size: 12px; color: var(--faint); }
+.tools button:hover { color: var(--text); }
+.tools .del:hover { color: var(--enemy); }
+.empty { color: var(--muted); padding: 20px; text-align: center; border: 1px dashed var(--border); border-radius: 6px; }
+
+.help { margin-top: 14px; color: var(--muted); font-size: 13px; }
+.help summary { cursor: pointer; color: var(--muted); }
+.help summary:hover { color: var(--text); }
+.help code { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; font-size: 12px; }
+.help ul { padding-left: 18px; margin: 6px 0 0; }

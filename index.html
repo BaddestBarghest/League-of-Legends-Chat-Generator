@@ -19,7 +19,25 @@
     </header>
 
     <main class="layout">
-      <section class="panel editor" aria-label="Chat lines"></section>
+      <section class="panel editor" aria-label="Chat lines">
+        <div class="panel-head">
+          <h2>Lines</h2>
+          <div class="add-row">
+            <button id="btn-add-chat" type="button">+ Chat</button>
+            <button id="btn-add-all" type="button">+ All chat</button>
+          </div>
+        </div>
+        <ol id="lines" class="lines"></ol>
+        <details class="help">
+          <summary>Color tags</summary>
+          <p>Wrap words in tags to color them:</p>
+          <ul>
+            <li><code>&lt;gold&gt;Last Whisper&lt;/gold&gt;</code> for items and keywords</li>
+            <li><code>&lt;red&gt;Draven&lt;/red&gt;</code> for enemies, <code>&lt;blue&gt;Leona&lt;/blue&gt;</code> for allies</li>
+            <li><code>&lt;#ff66cc&gt;anything&lt;/&gt;</code> for any hex color</li>
+          </ul>
+        </details>
+      </section>
       <section class="panel preview-panel" aria-label="Preview and export">
         <div class="panel-head">
           <h2>Preview</h2>
