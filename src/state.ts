@@ -1,4 +1,4 @@
-import type { ChatLine, Player, Settings } from "./types";
+import type { ChatLine, Player, PlayerStats, Settings } from "./types";
 
 export const DEFAULT_SETTINGS: Settings = {
   fontFamily: "Gill Sans",
@@ -79,6 +79,19 @@ export const state = {
   lines: sampleLines,
   players: playersFromLines(sampleLines),
 };
+
+export function defaultStats(): PlayerStats {
+  return { level: 1, kills: 0, deaths: 0, assists: 0, cs: 0, spells: ["Flash", ""], keystone: "", secondary: "", items: ["", "", "", "", "", "", ""] };
+}
+
+// A player's stats, filled in with defaults for anything missing.
+export function statsOf(p: Player): PlayerStats {
+  const s = { ...defaultStats(), ...(p.stats ?? {}) };
+  s.items = Array.from({ length: 7 }, (_, i) => s.items[i] ?? "");
+  s.spells = [s.spells[0] ?? "", s.spells[1] ?? ""];
+  p.stats = s;
+  return s;
+}
 
 // The roster entry a line was written by, if any.
 export function playerOf(line: ChatLine): Player | undefined {

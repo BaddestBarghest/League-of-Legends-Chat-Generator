@@ -325,3 +325,23 @@ option { color: var(--text); }
 /* click to edit, and keep line rows inside the panel on phones */
 #preview { cursor: pointer; }
 .line { grid-template-columns: minmax(0, 1fr); }
+
+/* player stats */
+.roster-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto; }
+.roster-row .p-stats { padding: 4px 8px; font-size: 11px; color: var(--muted); }
+.roster-row .p-stats.on { color: var(--text); background: var(--surface-2); }
+.roster-entry { display: flex; flex-direction: column; gap: 6px; }
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+.stats label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--muted); min-width: 0; }
+.stats input { width: 100%; background: var(--surface); }
+.stats-nums { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.stats-items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }

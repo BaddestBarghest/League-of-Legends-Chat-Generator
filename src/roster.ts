@@ -1,7 +1,11 @@
-import type { Player } from "./types";
+import type { Player, PlayerStats } from "./types";
 import { $, el } from "./dom";
-import { championPicker } from "./namePicker";
-import { changed, newId, onChange, state } from "./state";
+import { getItems, getRunes, getSpells } from "./gameData";
+import { championPicker, namePicker } from "./namePicker";
+import { changed, newId, onChange, state, statsOf } from "./state";
+
+// Players whose scoreboard stats are showing.
+const statsOpen = new Set<string>();
 
 // The Players panel. Set each player up once, then pick them anywhere.
 export function mountRoster(): void {
@@ -63,5 +67,63 @@ function playerRow(p: Player, render: () => void): HTMLElement {
     render();
   });
 
-  return el("div", { className: "roster-row" }, [name, championPicker(champ), remove]);
+  const toggle = el("button", {
+    type: "button",
+    className: `p-stats${statsOpen.has(p.id) ? " on" : ""}`,
+    textContent: "Stats",
+    title: "Scoreboard stats",
+    "aria-expanded": String(statsOpen.has(p.id)),
+  });
+  toggle.addEventListener("click", () => {
+    if (statsOpen.has(p.id)) statsOpen.delete(p.id);
+    else statsOpen.add(p.id);
+    render();
+  });
+
+  const row = el("div", { className: "roster-row" }, [name, championPicker(champ), toggle, remove]);
+  if (!statsOpen.has(p.id)) return row;
+  return el("div", { className: "roster-entry" }, [row, statsPanel(p)]);
+}
+
+// Level, score, spells, runes and items, as the Tab scoreboard shows them.
+function statsPanel(p: Player): HTMLElement {
+  const s = statsOf(p);
+  const save = () => changed();
+
+  const num = (label: string, key: "level" | "kills" | "deaths" | "assists" | "cs", max: number) => {
+    const input = el("input", { type: "number", min: "0", max: String(max), value: String(s[key]), "aria-label": label });
+    input.addEventListener("input", () => {
+      s[key] = Math.max(0, Math.min(max, Math.floor(Number(input.value) || 0)));
+      save();
+    });
+    return el("label", {}, [label, input]);
+  };
+
+  const pick = (label: string, value: string, names: () => string[], onSet: (v: string) => void, all = false) => {
+    const input = el("input", { type: "text", value, placeholder: "None", "aria-label": label });
+    input.addEventListener("input", () => {
+      onSet(input.value);
+      save();
+    });
+    return el("label", {}, [label, namePicker(input, names, { showAllWhenEmpty: all })]);
+  };
+
+  const setSpell = (i: 0 | 1) => (v: string) => (s.spells[i] = v);
+  const setItem = (i: number) => (v: string) => (s.items[i] = v);
+  const set = (key: keyof Pick<PlayerStats, "keystone" | "secondary">) => (v: string) => (s[key] = v);
+
+  return el("div", { className: "stats" }, [
+    el("div", { className: "stats-nums" }, [num("Level", "level", 18), num("K", "kills", 999), num("D", "deaths", 999), num("A", "assists", 999), num("CS", "cs", 9999)]),
+    el("div", { className: "stats-grid" }, [
+      pick("Spell 1", s.spells[0], getSpells, setSpell(0), true),
+      pick("Spell 2", s.spells[1], getSpells, setSpell(1), true),
+      pick("Keystone", s.keystone, getRunes, set("keystone")),
+      pick("Secondary", s.secondary, getRunes, set("secondary")),
+    ]),
+    el(
+      "div",
+      { className: "stats-items" },
+      s.items.map((item, i) => pick(i === 6 ? "Trinket" : `Item ${i + 1}`, item, getItems, setItem(i))),
+    ),
+  ]);
 }

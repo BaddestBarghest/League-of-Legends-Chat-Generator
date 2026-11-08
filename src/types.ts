@@ -22,6 +22,21 @@ export interface Player {
   team: "ally" | "enemy";
   name: string;
   champion: string;
+  stats?: PlayerStats;
+}
+
+// What the Tab scoreboard shows for a player. Names, not ids, so they read
+// well in saves and match what the pickers suggest.
+export interface PlayerStats {
+  level: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+  cs: number;
+  spells: [string, string];
+  keystone: string;
+  secondary: string;
+  items: string[]; // six item slots, then the trinket
 }
 
 export interface Palette {
