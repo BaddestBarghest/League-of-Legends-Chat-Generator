@@ -10,30 +10,28 @@ export const DEFAULT_SETTINGS: Settings = {
   fixedWidth: 0,
   scale: 2,
   showTime: true,
-  // Measured from in-game screenshots.
+  // Team, ping and status colors come from the game's own strings.
+  // Gold, white, green, cyan and yellow were measured from screenshots.
   palette: {
-    ally: "#42b0e8",
-    enemy: "#ee3434",
+    ally: "#40c0fe",
+    enemy: "#fe3333",
     gold: "#eb9a0a",
     white: "#e4e2e6",
     time: "#dcdcdc",
-    ping: "#ccb0ae",
-    info: "#b0e4a0",
+    ping: "#eecccc",
+    info: "#c1ffaf",
     green: "#10e010",
     cyan: "#50aec4",
     yellow: "#dcdc04",
   },
 };
 
-// The first palette, before it was matched to the game. Saves that still
-// use these get the new colors.
-export const OLD_DEFAULT_PALETTE: Record<string, string> = {
-  ally: "#6ab4e4",
-  enemy: "#e5525a",
-  gold: "#e8c46a",
-  white: "#e8eef0",
-  time: "#dde2e6",
-};
+// Earlier default palettes. Saves that still use one of these colors get
+// the current default instead.
+export const OLD_DEFAULT_PALETTES: Record<string, string>[] = [
+  { ally: "#6ab4e4", enemy: "#e5525a", gold: "#e8c46a", white: "#e8eef0", time: "#dde2e6" },
+  { ally: "#42b0e8", enemy: "#ee3434", ping: "#ccb0ae", info: "#b0e4a0" },
+];
 
 let uid = 0;
 export const newId = () => `l${Date.now().toString(36)}${(uid++).toString(36)}`;

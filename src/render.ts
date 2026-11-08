@@ -7,9 +7,9 @@ export const GILL = "Gill Sans";
 const GILL_NAMES = ['"Gill Sans"', "GillSans", '"Gill Sans MT"'];
 const FALLBACK = 'Metrophobic, "Trebuchet MS", sans-serif';
 
-export function fontString(s: Settings, scale = 1): string {
+export function fontString(s: Settings, scale = 1, bold = false): string {
   const family = s.fontFamily === GILL ? GILL_NAMES.join(", ") : quoteFamily(s.fontFamily);
-  return `${s.fontSize * scale}px ${family}, ${FALLBACK}`;
+  return `${bold ? "bold " : ""}${s.fontSize * scale}px ${family}, ${FALLBACK}`;
 }
 
 // A font that isn't installed renders at the fallback's width, so a width
@@ -61,6 +61,7 @@ export interface RenderOptions {
 export async function ensureFont(s: Settings): Promise<void> {
   try {
     await document.fonts.load(fontString(s), "Aa[]():0123456789");
+    await document.fonts.load(fontString(s, 1, true), "Aa[]():0123456789");
   } catch {
     // fallback font is fine
   }
@@ -69,6 +70,7 @@ export async function ensureFont(s: Settings): Promise<void> {
 interface Piece {
   text: string;
   color: string;
+  bold: boolean;
   x: number;
 }
 
@@ -82,8 +84,9 @@ function layout(ctx: CanvasRenderingContext2D, lines: ChatLine[], s: Settings): 
   return lines.map((line) => {
     const rows: Piece[][] = [[]];
     let x = left;
+    let bold = false;
     const put = (text: string, color: string) => {
-      rows[rows.length - 1].push({ text, color, x });
+      rows[rows.length - 1].push({ text, color, bold, x });
       x += ctx.measureText(text).width;
     };
     const newRow = () => {
@@ -92,6 +95,8 @@ function layout(ctx: CanvasRenderingContext2D, lines: ChatLine[], s: Settings): 
     };
 
     for (const seg of lineSegments(line, s)) {
+      bold = Boolean(seg.bold);
+      ctx.font = fontString(s, 1, bold);
       for (const token of seg.text.split(/(\s+)/)) {
         if (!token) continue;
         const w = ctx.measureText(token).width;
@@ -122,9 +127,11 @@ function layout(ctx: CanvasRenderingContext2D, lines: ChatLine[], s: Settings): 
   });
 }
 
-function rowWidth(row: Piece[], ctx: CanvasRenderingContext2D): number {
+function rowWidth(row: Piece[], ctx: CanvasRenderingContext2D, s: Settings): number {
   const last = row[row.length - 1];
-  return last ? last.x + ctx.measureText(last.text.trimEnd()).width : 0;
+  if (!last) return 0;
+  ctx.font = fontString(s, 1, last.bold);
+  return last.x + ctx.measureText(last.text.trimEnd()).width;
 }
 
 function measureWith(ctx: CanvasRenderingContext2D, lines: ChatLine[], s: Settings) {
@@ -132,7 +139,7 @@ function measureWith(ctx: CanvasRenderingContext2D, lines: ChatLine[], s: Settin
   const laid = layout(ctx, lines, s);
   const rows = laid.reduce((n, l) => n + l.length, 0);
   const outline = s.fontSize * s.outline;
-  const widest = Math.max(0, ...laid.flat().map((row) => rowWidth(row, ctx)));
+  const widest = Math.max(0, ...laid.flat().map((row) => rowWidth(row, ctx, s)));
   const width = s.fixedWidth > 0 ? s.fixedWidth : Math.ceil(widest + s.padding + outline);
   const height = Math.ceil(rows * s.fontSize * s.lineHeight + s.padding * 2);
   return { laid, width: Math.max(1, width), height: Math.max(1, height) };
@@ -178,6 +185,7 @@ export function render(
   rows.forEach((row, i) => {
     const y = s.padding + (startRow + i) * lh + baselineOffset;
     for (const piece of row) {
+      ctx.font = fontString(s, 1, piece.bold);
       // Dark outline and shadow first so text reads on any background.
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,0.6)";

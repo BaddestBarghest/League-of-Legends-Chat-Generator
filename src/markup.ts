@@ -3,6 +3,7 @@ import type { Palette } from "./types";
 export interface Segment {
   text: string;
   color: string;
+  bold?: boolean;
 }
 
 const NAMED: Record<string, keyof Palette> = {
@@ -23,19 +24,20 @@ const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 const TAG = /<(\/?)([#\w]*)>/g;
 
 // Splits a message into colored pieces. Tags look like <gold>X</gold>,
-// <red>X</red> or <#ff66cc>X</>. Unknown tags stay as plain text, and any
-// closing tag closes the last one opened.
+// <red>X</red> or <#ff66cc>X</>, and <b>X</b> makes text bold. Unknown tags
+// stay as plain text, and any other closing tag closes the last color opened.
 export function parseMarkup(input: string, palette: Palette, base: string): Segment[] {
   const out: Segment[] = [];
   const stack: string[] = [base];
+  let bold = 0;
   let last = 0;
 
   const push = (text: string) => {
     if (!text) return;
     const color = stack[stack.length - 1];
     const prev = out[out.length - 1];
-    if (prev && prev.color === color) prev.text += text;
-    else out.push({ text, color });
+    if (prev && prev.color === color && Boolean(prev.bold) === bold > 0) prev.text += text;
+    else out.push(bold > 0 ? { text, color, bold: true } : { text, color });
   };
 
   for (const m of input.matchAll(TAG)) {
@@ -44,7 +46,13 @@ export function parseMarkup(input: string, palette: Palette, base: string): Segm
     const lower = name.toLowerCase();
     let handled = false;
 
-    if (slash) {
+    if (lower === "b") {
+      if (!slash || bold > 0) {
+        push(input.slice(last, idx));
+        bold += slash ? -1 : 1;
+        handled = true;
+      }
+    } else if (slash) {
       if (stack.length > 1) {
         push(input.slice(last, idx));
         stack.pop();

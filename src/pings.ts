@@ -1,8 +1,8 @@
 import type { ChatLine } from "./types";
 
-// Ping chat text, matched to in-game screenshots and the League Wiki ping page.
-// Colors were measured from screenshots: smart pings use the dim ping color,
-// pings on things in the world are gold, statuses are pale green.
+// Ping and announcement text, taken from the game's own string table
+// (game_ping_* and game_announcement_* entries, run npm run strings to see
+// them). Text the game leaves uncolored shows up gold in chat, so it's gold here.
 
 export type ParamKey =
   | "enemyPlayer"
@@ -30,7 +30,10 @@ export type ParamKey =
   | "ms"
   | "text"
   | "multikill"
-  | "spree";
+  | "spree"
+  | "epic"
+  | "teamGold"
+  | "votes";
 
 export interface ParamDef {
   label: string;
@@ -92,6 +95,16 @@ export const PARAMS: Record<ParamKey, ParamDef> = {
     placeholder: "none",
     options: ["for a double kill!", "for a triple kill!", "for a quadra kill!", "for a penta kill!"],
   },
+  epic: {
+    label: "Objective",
+    placeholder: "Baron Nashor",
+    options: [
+      "Baron Nashor", "Elder Dragon", "Infernal Drake", "Ocean Drake", "Mountain Drake", "Cloud Drake",
+      "Hextech Drake", "Chemtech Drake", "Rift Herald", "Voidgrubs", "Ruinous Atakhan", "Thornbound Atakhan",
+    ],
+  },
+  teamGold: { label: "Team gold", placeholder: "none" },
+  votes: { label: "Votes", placeholder: "2 / 1" },
   spree: {
     label: "Streak",
     placeholder: "is on a killing spree!",
@@ -121,11 +134,15 @@ const who = (player: string, champ: string) => `${player} (${champ})`;
 // stats weren't in the screenshots, so they use teal too.
 // "has slain" and the multikill text are gold, like the game.
 const killLine = (killer: string, victim: string, multi: string) =>
-  `${killer} ${g("has slain")} ${victim}` + (multi && multi !== "none" ? ` ${g(multi)}` : "");
+  `${killer} ${g("has slain")} ${victim}` + (multi && multi !== "none" ? ` ${g(multi)}` : g("!"));
 
 // "has shut down Runa (Heimerdinger)! (Bonus Bounty: 409G)" with the amount in yellow.
 const shutdownLine = (killer: string, victim: string, bounty: string) =>
   `${killer} ${g("has shut down")} ${victim}${g("! (Bonus Bounty: ")}${y(`${bounty.replace(/g$/i, "")}G`)}${g(")")}`;
+
+// Baron and Atakhan go without "the", everything else takes it.
+const objectiveName = (name: string) => (/^(baron|ruinous|thornbound)/i.test(name) ? name : `the ${name}`);
+const teamGold = (gold: string) => (gold && gold !== "none" ? ` ${g("(Team Gold: ")}${y(`${gold.replace(/g$/i, "")}G`)}${g(")")}` : "");
 
 const statValue = (stat: string, value: string) =>
   stat.toLowerCase() === "attack speed" ? `<green>${value}</green>` : `<cyan>${value}</cyan>`;
@@ -157,17 +174,17 @@ export const PINGS: PingDef[] = [
   { id: "target-monster", group: TARGET, label: "Targeted monster", kind: "action", params: ["monster"], build: (p) => g(`has targeted the ${p.monster}`) },
 
   // Caution ping, on the ground or on something.
-  { id: "caution", group: CAUTION, label: "Be cautious", kind: "action", params: [], build: () => g("signals to be cautious") },
-  { id: "caution-ally", group: CAUTION, label: "Ally should fall back", kind: "action", params: ["allyPlayer", "ally"], build: (p) => g(`signals ${p.allyPlayer} - (${p.ally}) to fall back`) },
-  { id: "caution-own-turret", group: CAUTION, label: "Falling back from allied turret", kind: "action", params: ["turret"], build: (p) => g(`is falling back from the ${p.turret}`) },
-  { id: "caution-enemy", group: CAUTION, label: "Back away from enemy champion", kind: "action", params: ["enemyPlayer", "enemy"], build: (p) => g(`signals everyone to back away from ${p.enemyPlayer} - (${p.enemy})`) },
-  { id: "caution-turret", group: CAUTION, label: "Fall back from enemy turret", kind: "action", params: ["turret"], build: (p) => g(`signals everyone to fall back from the ${p.turret}`) },
-  { id: "caution-structure", group: CAUTION, label: "Fall back from enemy structure", kind: "action", params: ["structure"], build: (p) => g(`signals everyone to fall back from the ${p.structure}`) },
-  { id: "caution-monster", group: CAUTION, label: "Fall back from monster", kind: "action", params: ["monster"], build: (p) => g(`signals everyone to fall back from the ${p.monster}`) },
+  { id: "caution", group: CAUTION, label: "Be cautious", kind: "action", params: [], build: () => ping("signals to be cautious") },
+  { id: "caution-ally", group: CAUTION, label: "Ally should fall back", kind: "action", params: ["allyPlayer", "ally"], build: (p) => `${ping("signals")} ${g(`${p.allyPlayer} - (${p.ally})`)} ${ping("to fall back")}` },
+  { id: "caution-own-turret", group: CAUTION, label: "Falling back from allied turret", kind: "action", params: ["turret"], build: (p) => `${ping("is falling back from the")} ${g(p.turret)}` },
+  { id: "caution-enemy", group: CAUTION, label: "Back away from enemy champion", kind: "action", params: ["enemyPlayer", "enemy"], build: (p) => `${ping("signals everyone to back away from")} ${g(`${p.enemyPlayer} - (${p.enemy})`)}` },
+  { id: "caution-turret", group: CAUTION, label: "Fall back from enemy turret", kind: "action", params: ["turret"], build: (p) => `${ping("signals everyone to fall back from the")} ${g(p.turret)}` },
+  { id: "caution-structure", group: CAUTION, label: "Fall back from enemy structure", kind: "action", params: ["structure"], build: (p) => `${ping("signals everyone to fall back from the")} ${g(p.structure)}` },
+  { id: "caution-monster", group: CAUTION, label: "Fall back from monster", kind: "action", params: ["monster"], build: (p) => `${ping("signals everyone to fall back from the")} ${g(p.monster)}` },
 
   // Clicking HUD or scoreboard elements.
   { id: "hud-enemy-ult", group: HUD, label: "Enemy ultimate", kind: "chat", params: ["enemy"], build: (p) => `${r(p.enemy)} ${g("R")}` },
-  { id: "hud-ally-ult", group: HUD, label: "Ally ultimate", kind: "chat", params: ["ally", "abilityStatus"], build: (p) => `${b(p.ally)}${info(` - ${p.abilityStatus}`)}` },
+  { id: "hud-ally-ult", group: HUD, label: "Ally ultimate", kind: "chat", params: ["ally", "abilityStatus"], build: (p) => `${b(p.ally)} ${g("R")}${info(` - ${p.abilityStatus}`)}` },
   { id: "hud-own-ult", group: HUD, label: "Your ultimate", kind: "chat", params: ["abilityStatus"], build: (p) => `${g("R")}${info(` - ${p.abilityStatus}`)}` },
   { id: "hud-ability", group: HUD, label: "Your ability", kind: "chat", params: ["ability", "abilityStatus"], build: (p) => `${g(p.ability)}${info(` - ${p.abilityStatus}`)}` },
   { id: "hud-spell", group: HUD, label: "Your summoner spell", kind: "chat", params: ["spell", "spellStatus"], build: (p) => `${g(p.spell)}${info(` - ${p.spellStatus}`)}` },
@@ -201,13 +218,27 @@ export const PINGS: PingDef[] = [
     build: (p) => shutdownLine(b(who(p.allyPlayer, p.ally)), r(who(p.enemyPlayer, p.enemy)), p.gold) },
   { id: "shutdown-by-enemy", group: KILLS, label: "Enemy shut down ally", kind: "system", params: ["enemyPlayer", "enemy", "allyPlayer", "ally", "gold"],
     build: (p) => shutdownLine(r(who(p.enemyPlayer, p.enemy)), b(who(p.allyPlayer, p.ally)), p.gold) },
+  { id: "kill-by-minion", group: KILLS, label: "Minion killed ally", kind: "system", params: ["allyPlayer", "ally"],
+    build: (p) => `${g("A")} ${r("minion")} ${g("has slain")} ${b(who(p.allyPlayer, p.ally))}${g("!")}` },
+  { id: "kill-by-turret", group: KILLS, label: "Turret killed ally", kind: "system", params: ["allyPlayer", "ally"],
+    build: (p) => `${g("A")} ${r("turret")} ${g("has slain")} ${b(who(p.allyPlayer, p.ally))}${g("!")}` },
+  { id: "objective-ally", group: KILLS, label: "Ally took objective", kind: "system", params: ["allyPlayer", "ally", "epic", "teamGold"],
+    build: (p) => `<b>${b(who(p.allyPlayer, p.ally))} ${g(`has slain ${objectiveName(p.epic)}!`)}</b>${teamGold(p.teamGold)}` },
+  { id: "objective-enemy", group: KILLS, label: "Enemy team took objective", kind: "system", params: ["epic", "teamGold"],
+    build: (p) => `<b>${g("The")} ${r("enemy team")} ${g(`has slain ${objectiveName(p.epic)}!`)}</b>${teamGold(p.teamGold)}` },
   { id: "ace-enemy", group: KILLS, label: "Enemy team ace", kind: "system", params: [], build: () => `${r("Enemy team")} ${g("has scored an ace!")}` },
   { id: "ace-ally", group: KILLS, label: "Ally team ace", kind: "system", params: [], build: () => `${b("Ally team")} ${g("has scored an ace!")}` },
 
   // Not pings, but they show up in the same chat box.
-  { id: "purchase", group: OTHER, label: "Purchased item", kind: "action", params: ["item"], build: (p) => `purchased ${g(p.item)}` },
+  { id: "purchase", group: OTHER, label: "Purchased item", kind: "action", params: ["item"], build: (p) => `${ping("purchased")} ${g(p.item)}` },
   { id: "sys-first-turret", group: OTHER, label: "Ally team destroyed first turret", kind: "system", params: [], build: () => g("Ally team has destroyed the first turret!") },
-  { id: "sys-surrender-failed", group: OTHER, label: "Surrender vote failed", kind: "system", params: [], build: () => g("Surrender vote failed for your team 2 / 1.") },
+  { id: "sys-first-turret-enemy", group: OTHER, label: "Enemy team destroyed first turret", kind: "system", params: [], build: () => g("Enemy team has destroyed the first turret!") },
+  { id: "sys-first-turret-ally-player", group: OTHER, label: "Ally destroyed first turret", kind: "system", params: ["allyPlayer", "ally"],
+    build: (p) => `${b(who(p.allyPlayer, p.ally))} ${g("has destroyed the first turret!")}` },
+  { id: "sys-first-turret-enemy-player", group: OTHER, label: "Enemy destroyed first turret", kind: "system", params: ["enemyPlayer", "enemy"],
+    build: (p) => `${r(who(p.enemyPlayer, p.enemy))} ${g("has destroyed the first turret!")}` },
+  { id: "sys-surrender-failed", group: OTHER, label: "Surrender vote failed (your team)", kind: "system", params: ["votes"], build: (p) => g(`Surrender vote failed for your team ${p.votes}.`) },
+  { id: "sys-surrender-failed-enemy", group: OTHER, label: "Surrender vote failed (enemy team)", kind: "system", params: ["votes"], build: (p) => g(`Surrender vote failed for enemy team ${p.votes}.`) },
   { id: "sys-custom", group: OTHER, label: "Other system message", kind: "system", params: ["text"], build: (p) => g(p.text) },
 ];
 

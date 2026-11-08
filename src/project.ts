@@ -1,6 +1,6 @@
 import type { ChatLine, Palette, Project } from "./types";
 import { $, download, stamp, toast } from "./dom";
-import { changed, DEFAULT_SETTINGS, makeLine, OLD_DEFAULT_PALETTE, onChange, state } from "./state";
+import { changed, DEFAULT_SETTINGS, makeLine, OLD_DEFAULT_PALETTES, onChange, state } from "./state";
 import { syncStyleControls } from "./styleControls";
 
 const STORAGE_KEY = "chat-log-maker:v1";
@@ -13,7 +13,8 @@ function snapshot(): Project {
 function upgradePalette(saved: Partial<Palette>): Palette {
   const palette = { ...DEFAULT_SETTINGS.palette };
   for (const [key, value] of Object.entries(saved) as [keyof Palette, string][]) {
-    if (key in palette && value !== OLD_DEFAULT_PALETTE[key]) palette[key] = value;
+    const wasDefault = OLD_DEFAULT_PALETTES.some((old) => old[key] === value);
+    if (key in palette && !wasDefault) palette[key] = value;
   }
   return palette;
 }
