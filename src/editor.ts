@@ -3,6 +3,24 @@ import { championPicker } from "./namePicker";
 import { $, el } from "./dom";
 import { changed, makeLine, newId, onChange, playerOf, state } from "./state";
 import { findTimeIssues, fixTimes } from "./timeCheck";
+import { lineSegments } from "./render";
+
+// The line being edited. Everything else shows as a one-row summary.
+let openId: string | null = null;
+
+export function getOpenLineId(): string | null {
+  return openId;
+}
+
+// Opens a line's editor and moves focus to its message.
+export function openLine(id: string | null, focus = true): void {
+  openId = id;
+  changed(true);
+  if (!id || !focus) return;
+  const li = document.querySelector<HTMLLIElement>(`.line[data-id="${id}"]`);
+  li?.scrollIntoView({ block: "nearest" });
+  li?.querySelector<HTMLInputElement>(".f-body")?.focus();
+}
 
 export function mountEditor(): void {
   const list = $<HTMLOListElement>("#lines");
@@ -13,7 +31,8 @@ export function mountEditor(): void {
       list.append(el("li", { className: "empty" }, ["No lines yet."]));
       return;
     }
-    state.lines.forEach((l, i) => list.append(lineCard(l, i)));
+    if (openId && !state.lines.some((l) => l.id === openId)) openId = null;
+    state.lines.forEach((l, i) => list.append(l.id === openId ? lineCard(l, i) : compactRow(l, i)));
   };
 
   $<HTMLButtonElement>("#btn-add-chat").addEventListener("click", () => addLine(list, { channel: "team", body: "on my way" }));
@@ -26,10 +45,73 @@ export function mountEditor(): void {
 
   onChange((structural) => {
     if (structural) renderList();
+    else refreshSummaries(list);
     markTimeIssues(list);
   });
   renderList();
   markTimeIssues(list);
+}
+
+// Colored text for a line, the way it will render, without the time.
+function summary(l: ChatLine): HTMLElement {
+  const segs = lineSegments({ ...l, time: "" }, state.settings);
+  const span = el(
+    "span",
+    { className: "sum-text" },
+    segs.map((s) => {
+      const part = el("span", { textContent: s.text });
+      part.style.color = s.color;
+      if (s.bold) part.style.fontWeight = "600";
+      return part;
+    }),
+  );
+  if (!segs.length) span.append(el("span", { className: "sum-empty", textContent: "Empty line" }));
+  return span;
+}
+
+function refreshSummaries(list: HTMLElement): void {
+  for (const li of list.querySelectorAll<HTMLLIElement>(".line.compact")) {
+    const line = state.lines.find((l) => l.id === li.dataset.id);
+    if (!line) continue;
+    li.querySelector(".sum-text")?.replaceWith(summary(line));
+    const time = li.querySelector(".sum-time");
+    if (time) time.textContent = line.time || "--:--";
+  }
+}
+
+function toolButtons(l: ChatLine, index: number): HTMLElement {
+  const tool = (label: string, title: string, fn: () => void, cls = "") => {
+    const b = el("button", { type: "button", textContent: label, title, className: cls, "aria-label": title });
+    b.addEventListener("click", (e) => {
+      e.stopPropagation();
+      fn();
+    });
+    return b;
+  };
+  return el("div", { className: "tools" }, [
+    tool("↑", "Move up", () => move(index, -1)),
+    tool("↓", "Move down", () => move(index, 1)),
+    tool("⧉", "Duplicate", () => {
+      state.lines.splice(index + 1, 0, { ...structuredClone(l), id: newId() });
+      changed(true);
+    }),
+    tool("✕", "Delete", () => {
+      state.lines.splice(index, 1);
+      changed(true);
+    }, "del"),
+  ]);
+}
+
+// One row per line: time and the colored text. Click to edit.
+function compactRow(l: ChatLine, index: number): HTMLLIElement {
+  const li = el("li", { className: "line compact", "data-team": l.team, "data-id": l.id });
+  const open = el("button", { type: "button", className: "sum", "aria-label": "Edit line" }, [
+    el("span", { className: "sum-time", textContent: l.time || "--:--" }),
+    summary(l),
+  ]);
+  open.addEventListener("click", () => openLine(l.id));
+  li.append(el("div", { className: "row" }, [open, toolButtons(l, index)]), el("p", { className: "time-note", "aria-live": "polite" }));
+  return li;
 }
 
 // Highlights lines whose time is out of order and shows the fix button.
@@ -100,7 +182,7 @@ function speakerSelect(l: ChatLine): HTMLSelectElement {
 }
 
 function lineCard(l: ChatLine, index: number): HTMLLIElement {
-  const li = el("li", { className: "line", "data-team": l.team, "data-id": l.id });
+  const li = el("li", { className: "line open", "data-team": l.team, "data-id": l.id });
   const set = (patch: Partial<ChatLine>) => {
     Object.assign(l, patch);
     changed();
@@ -129,8 +211,8 @@ function lineCard(l: ChatLine, index: number): HTMLLIElement {
   });
 
   const kind = el("select", { className: "f-kind", "aria-label": "Line type" }, [
-    el("option", { value: "chat", textContent: "Name:" }),
-    el("option", { value: "action", textContent: "Name (no colon)" }),
+    el("option", { value: "chat", textContent: "Chat (Name:)" }),
+    el("option", { value: "action", textContent: "Action (Name)" }),
   ]);
   kind.value = l.kind;
   kind.addEventListener("change", () => set({ kind: kind.value as LineKind }));
@@ -143,23 +225,13 @@ function lineCard(l: ChatLine, index: number): HTMLLIElement {
   channel.value = l.channel;
   channel.addEventListener("change", () => set({ channel: channel.value as Channel }));
 
-  const tool = (label: string, title: string, fn: () => void, cls = "") => {
-    const b = el("button", { type: "button", textContent: label, title, className: cls, "aria-label": title });
-    b.addEventListener("click", fn);
-    return b;
-  };
-  const tools = el("div", { className: "tools" }, [
-    tool("↑", "Move up", () => move(index, -1)),
-    tool("↓", "Move down", () => move(index, 1)),
-    tool("⧉", "Duplicate", () => {
-      state.lines.splice(index + 1, 0, { ...structuredClone(l), id: newId() });
-      changed(true);
-    }),
-    tool("✕", "Delete", () => {
-      state.lines.splice(index, 1);
-      changed(true);
-    }, "del"),
-  ]);
+  const done = el("button", { type: "button", className: "small done", textContent: "Done" });
+  done.addEventListener("click", () => openLine(null));
+  const tools = el("div", { className: "tools" }, [toolButtons(l, index), done]);
+  // Escape closes the editor.
+  li.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !(e.target as HTMLElement).closest(".cb")) openLine(null);
+  });
 
   const who = speakerSelect(l);
   const typedByHand = who.value === "custom";

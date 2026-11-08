@@ -286,3 +286,32 @@ option { color: var(--text); }
 .roster-row .p-del:hover { color: var(--enemy); }
 .roster-empty { margin: 0; font-size: 12px; color: var(--faint); }
 .f-who { min-width: 0; max-width: 220px; }
+
+/* compact line rows */
+.lines { gap: 4px; }
+.line.compact { padding: 2px 4px 2px 10px; gap: 0; }
+.line.compact::before { top: 6px; bottom: 6px; }
+.line.compact .row { flex-wrap: nowrap; gap: 4px; }
+.sum {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  border: 0;
+  padding: 6px 4px;
+  text-align: left;
+  background: transparent;
+  overflow: hidden;
+}
+.sum:hover { background: transparent; }
+.line.compact:hover { border-color: var(--border-hover); }
+.sum-time { flex: none; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; width: 40px; }
+.sum-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; }
+.sum-empty { color: var(--faint); font-style: italic; }
+.line.compact .tools { opacity: 0; transition: opacity 0.12s; }
+.line.compact:hover .tools, .line.compact:focus-within .tools { opacity: 1; }
+@media (hover: none) { .line.compact .tools { opacity: 1; } }
+.line.compact.time-bad .sum-time { color: var(--enemy); }
+.line.open { border-color: var(--border-hover); }
+.tools .done { color: var(--text); border-color: var(--border); margin-left: 4px; }
