@@ -281,8 +281,7 @@ button.link:hover { background: none; color: #fff; }
 .line .f-body { flex: 1 1 100%; width: 100%; }
 .line[data-team="system"] .f-name,
 .line[data-team="system"] .f-champ,
-.line[data-team="system"] .f-channel,
-.line[data-team="system"] .f-kind { display: none; }
+.line[data-team="system"] .f-channel { display: none; }
 .line.open { border-color: var(--border-hover); }
 .f-who { min-width: 0; max-width: 240px; }
 

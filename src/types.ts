@@ -10,7 +10,9 @@ export interface ChatLine {
   channel: Channel;
   name: string;
   champion: string;
-  // "chat" adds a colon after the name, "action" doesn't (like "purchased X").
+  // Set from how the line was made, never picked by hand. "chat" (typed chat
+  // and HUD pings) puts a colon after the name, "action" (map pings and
+  // purchases) doesn't. Tagged lines always get the colon.
   kind: LineKind;
   // Message text. Can use color tags like <gold>Infinity Edge</gold>.
   body: string;

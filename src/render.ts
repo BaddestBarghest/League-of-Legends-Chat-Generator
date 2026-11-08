@@ -36,7 +36,9 @@ export function lineSegments(line: ChatLine, s: Settings): Segment[] {
     const tag = line.channel === "team" ? "[Team]" : line.channel === "all" ? "[All]" : "";
     const champ = line.champion.trim();
     let who = [tag, line.name.trim(), champ && `(${champ})`].filter(Boolean).join(" ");
-    if (who && line.kind === "chat") who += ":";
+    // Same rule as the game: typed chat and HUD pings put a colon after the
+    // name, map pings and purchases don't.
+    if (who && (line.channel !== "" || line.kind === "chat")) who += ":";
     if (who) segs.push({ text: who + " ", color: nameColor });
   }
 

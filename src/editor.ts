@@ -1,4 +1,4 @@
-import type { Channel, ChatLine, LineKind, Team } from "./types";
+import type { Channel, ChatLine, Team } from "./types";
 import { championPicker } from "./namePicker";
 import { $, el } from "./dom";
 import { changed, newId, onChange, playerOf, state } from "./state";
@@ -195,20 +195,15 @@ function lineCard(l: ChatLine, index: number): HTMLLIElement {
     li.dataset.team = team.value;
   });
 
-  const kind = el("select", { className: "f-kind", "aria-label": "Line type" }, [
-    el("option", { value: "chat", textContent: "Chat (Name:)" }),
-    el("option", { value: "action", textContent: "Action (Name)" }),
-  ]);
-  kind.value = l.kind;
-  kind.addEventListener("change", () => set({ kind: kind.value as LineKind }));
-
+  // Typed chat is either team or all chat. Pings have no tag, so they don't
+  // get this menu at all.
   const channel = el("select", { className: "f-channel", "aria-label": "Chat tag" }, [
-    el("option", { value: "", textContent: "No tag" }),
     el("option", { value: "team", textContent: "[Team]" }),
     el("option", { value: "all", textContent: "[All]" }),
   ]);
   channel.value = l.channel;
   channel.addEventListener("change", () => set({ channel: channel.value as Channel }));
+  const isChat = l.channel !== "";
 
   const done = el("button", { type: "button", className: "small done", textContent: "Done" });
   done.addEventListener("click", () => openLine(null));
@@ -222,7 +217,7 @@ function lineCard(l: ChatLine, index: number): HTMLLIElement {
   const typedByHand = who.value === "custom";
 
   li.append(
-    el("div", { className: "row" }, [time, who, channel, kind, tools]),
+    el("div", { className: "row" }, [time, who, ...(isChat ? [channel] : []), tools]),
     ...(typedByHand ? [el("div", { className: "row" }, [team, name, championPicker(champ)])] : []),
     el("div", { className: "row" }, [body]),
     el("p", { className: "time-note", "aria-live": "polite" }),
