@@ -4,6 +4,7 @@ import { changed, DEFAULT_SETTINGS, defaultBanner, makeLine, newId, OLD_DEFAULT_
 import { syncStyleControls } from "./styleControls";
 import { bannerImageBlob, blobToDataUrl, dataUrlToBlob, setBannerImage } from "./imageStore";
 
+// Storage keys keep the old name so saved work carries over.
 const STORAGE_KEY = "chat-log-maker:v1";
 
 function snapshot(): Project {
@@ -74,7 +75,7 @@ export function mountProjectFiles(): void {
     const data = snapshot();
     const img = state.banner.background === "image" ? await bannerImageBlob() : null;
     if (img) data.banner = { ...state.banner, imageData: await blobToDataUrl(img) };
-    download(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `chat-${stamp()}.json`);
+    download(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `summoner-studio-${stamp()}.json`);
   });
 
   $<HTMLInputElement>("#file-load").addEventListener("change", async (e) => {
