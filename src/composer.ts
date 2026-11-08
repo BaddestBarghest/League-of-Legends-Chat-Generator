@@ -5,6 +5,7 @@ import { getAbilities, getRunes, loadAbilities } from "./gameData";
 import { championPicker, itemPicker, namePicker, spellPicker } from "./namePicker";
 import { PARAMS, PINGS, pingText, pingToLine, type ParamKey } from "./pings";
 import { changed, makeLine, onChange, playerOf, state } from "./state";
+import { formatTime, parseTime } from "./timeCheck";
 
 // The box for adding lines: pick who's talking, then type a chat message or
 // build a ping. New lines go after the line being edited, or at the end.
@@ -40,13 +41,14 @@ export function mountComposer(): void {
 
   // ---- adding
 
-  const insert = (patch: Partial<ChatLine>) => {
+  const insert = (patch: Partial<ChatLine>, typed = false) => {
     const openId = getOpenLineId();
     const at = openId ? state.lines.findIndex((l) => l.id === openId) + 1 : state.lines.length;
     const prev = state.lines[at - 1];
     const p = speaker();
     const who: Partial<ChatLine> = p ? { team: p.team, name: p.name, champion: p.champion } : { team: "system" };
-    const line = makeLine({ time: time.value.trim() || prev?.time || "00:00", ...who, ...patch });
+    const line = makeLine({ ...who, ...patch });
+    line.time = time.value.trim() || autoTime(typed, prev, state.lines[at]);
     state.lines.splice(at, 0, line);
     // Keep adding in the same spot by moving the selection to the new line.
     if (openId) openLine(line.id, false);
@@ -57,7 +59,7 @@ export function mountComposer(): void {
     if (!message.value.trim()) return message.focus();
     // System messages never go to team or all chat.
     const system = from.value === "system";
-    insert({ kind: "chat", channel: system ? "" : (tag.value as Channel), body: message.value });
+    insert({ kind: "chat", channel: system ? "" : (tag.value as Channel), body: message.value }, true);
     message.value = "";
     message.focus();
   };
@@ -216,6 +218,19 @@ export function mountComposer(): void {
   syncTag();
   defaultTag();
   renderParams();
+}
+
+// Pings and announcements happen at once, so they share the time above.
+// Typing takes a moment, so a typed message lands a few seconds later, but
+// never after the line below it.
+function autoTime(typed: boolean, prev?: ChatLine, next?: ChatLine): string {
+  const base = prev ? parseTime(prev.time) : 0;
+  if (base === null || Number.isNaN(base)) return prev?.time || "00:00";
+  if (!typed) return formatTime(base);
+  let secs = base + 3 + Math.floor(Math.random() * 10);
+  const cap = next ? parseTime(next.time) : null;
+  if (cap !== null && !Number.isNaN(cap) && cap >= base) secs = Math.min(secs, cap);
+  return formatTime(secs);
 }
 
 function playerLabel(p: Player): string {

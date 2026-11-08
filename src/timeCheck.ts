@@ -12,6 +12,12 @@ export function parseTime(text: string): number | null {
   return Number(h ?? 0) * 3600 + Number(min) * 60 + Number(sec);
 }
 
+// Seconds back to game time. Minutes keep counting past 59, like in game.
+export function formatTime(secs: number): string {
+  const s = Math.max(0, Math.floor(secs));
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}
+
 // Problems keyed by line id. Order in the list wins, so a line can't show
 // an earlier time than the last timestamped line above it.
 export function findTimeIssues(lines: ChatLine[]): Map<string, string> {
