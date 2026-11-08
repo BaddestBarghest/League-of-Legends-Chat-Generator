@@ -257,7 +257,7 @@ export function renderScoreboard(
       tile(ctx, icons.get(key("spell", st.spells[0])), o + 8, cy - 25, 22);
       tile(ctx, icons.get(key("spell", st.spells[1])), o + 8, cy + 1, 22);
 
-      portraitWithBadges(icons.get(key("champion", p.champion)), o + 87.4, cy, p.team, dead, st);
+      portraitWithBadges(icons.get(key("champion", p.champion)), o + 87.4, cy, dead, st);
 
       // Creep score and K/D/A, with the bounty above when there is one.
       text(String(st.cs), o + 159, cy + 2.5, C.cs, 16, "center");
@@ -276,7 +276,7 @@ export function renderScoreboard(
 
   // Round portrait with the ult badge on the left and the level badge on
   // the right. Grey with a red respawn timer when dead.
-  function portraitWithBadges(img: HTMLImageElement | null | undefined, px: number, py: number, team: Player["team"], dead: boolean, st: PlayerStats) {
+  function portraitWithBadges(img: HTMLImageElement | null | undefined, px: number, py: number, dead: boolean, st: PlayerStats) {
     const r = 21.5;
     ctx.save();
     ctx.beginPath();
@@ -302,7 +302,9 @@ export function renderScoreboard(
       const h = rh * RING_SCALE;
       sprite(dead ? "ringDead" : "ringAlive", px - 31.5 * RING_SCALE, py - 27 * RING_SCALE, w, h);
       const orb = 18 * RING_SCALE;
-      sprite(team === "ally" ? "orbBlue" : "orbRed", left.x - orb / 2, left.y - orb / 2, orb, orb);
+      // The ult badge is red for everyone. The game's blue is a cooldown
+      // overlay drawn on top of it, not a team color.
+      sprite("orbRed", left.x - orb / 2, left.y - orb / 2, orb, orb);
     } else {
       const rim = dead ? C.rimDead : C.rimAlive;
       ctx.beginPath();
@@ -310,7 +312,7 @@ export function renderScoreboard(
       ctx.strokeStyle = rim;
       ctx.lineWidth = 2;
       ctx.stroke();
-      badge(ctx, left.x, left.y, 9, team === "ally" ? "#0b1a2a" : "#3a0606", rim);
+      badge(ctx, left.x, left.y, 9, "#3a0606", rim);
       badge(ctx, right.x, right.y, 9, C.badge, rim);
     }
     text(String(st.level), right.x, right.y, C.badgeText, 11, "center");
