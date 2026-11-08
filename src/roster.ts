@@ -14,13 +14,14 @@ export function mountRoster(): void {
       add.addEventListener("click", () => {
         state.players.push({ id: newId(), team, name: "", champion: "" });
         changed(true);
+        render();
         // Focus the new player's name so it can be typed straight away.
         const names = panel.querySelectorAll<HTMLInputElement>(`.roster-col[data-team="${team}"] .p-name`);
         names[names.length - 1]?.focus();
       });
       return el("div", { className: "roster-col", "data-team": team }, [
         el("div", { className: "roster-head" }, [el("h3", { textContent: title }), add]),
-        ...players.map(playerRow),
+        ...players.map((p) => playerRow(p, render)),
         ...(players.length ? [] : [el("p", { className: "roster-empty", textContent: "No one yet" })]),
       ]);
     };
@@ -28,13 +29,15 @@ export function mountRoster(): void {
   };
 
   onChange((structural) => {
-    // Don't rebuild while someone is typing in here, they'd lose their place.
-    if (structural && !panel.contains(document.activeElement)) render();
+    // Don't rebuild while a name is being typed here, it would lose its place.
+    // A focused button (like + Ally) is fine to rebuild.
+    const typing = document.activeElement instanceof HTMLInputElement && panel.contains(document.activeElement);
+    if (structural && !typing) render();
   });
   render();
 }
 
-function playerRow(p: Player): HTMLElement {
+function playerRow(p: Player, render: () => void): HTMLElement {
   // Renaming a player renames them on every line they wrote.
   const update = (patch: Partial<Player>) => {
     for (const line of state.lines) {
@@ -57,6 +60,7 @@ function playerRow(p: Player): HTMLElement {
     // Their lines stay. They just stop being linked to a roster entry.
     state.players = state.players.filter((x) => x !== p);
     changed(true);
+    render();
   });
 
   return el("div", { className: "roster-row" }, [name, championPicker(champ), remove]);
