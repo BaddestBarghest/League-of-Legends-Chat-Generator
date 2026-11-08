@@ -2,6 +2,8 @@
 
 Make League style in-game chat logs and export them as transparent PNGs for videos, thumbnails and memes.
 
+**Try it here: [baddestbarghest.github.io/League-of-Legends-Chat-Generator](https://baddestbarghest.github.io/League-of-Legends-Chat-Generator/)**
+
 ## Features
 
 - Players panel: set up each team once, then pick who's talking from a list. Renaming a player updates every line they wrote
