@@ -30,6 +30,18 @@
             <button id="btn-add-all" type="button">+ All chat</button>
           </div>
         </div>
+
+        <div class="pinger">
+          <div class="pinger-head">
+            <label class="grow">Ping
+              <select id="ping-type" aria-label="Ping type"></select>
+            </label>
+            <button id="btn-add-ping" class="primary" type="button">+ Add ping</button>
+          </div>
+          <div id="ping-params" class="ping-params"></div>
+          <p class="hint">Uses the player from the last line. Empty fields use the example text.</p>
+        </div>
+
         <ol id="lines" class="lines"></ol>
         <details class="help">
           <summary>Color tags</summary>
