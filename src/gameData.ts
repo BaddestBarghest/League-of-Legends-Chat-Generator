@@ -81,6 +81,10 @@ interface RiotItem {
   tags?: string[];
 }
 
+// Some names are used by more than one item, like an old Stealth Ward that
+// isn't the yellow trinket. These point at the ones the shop sells.
+const PINNED: Record<string, string> = { "Stealth Ward": "3340", "Farsight Alteration": "3363", "Oracle Lens": "3364" };
+
 const isTrinket = (i: RiotItem) => clean(i.name) === "Poro-Snax" || Boolean(i.tags?.includes("Trinket"));
 
 // Riot's item list also has Arena and Swarm entries named after abilities,
@@ -102,11 +106,12 @@ interface Listed {
 export async function loadGameData(): Promise<void> {
   patch = await latestVersion().catch(() => "");
   const jobs: Promise<void>[] = [
-    cached<Listed>("items:v4", async () => {
+    cached<Listed>("items:v5", async () => {
       const data = await getJson("item.json");
       const list = Object.values(data.data as Record<string, RiotItem>);
       const imgs: Images = {};
       for (const i of list) imgs[clean(i.name)] ??= `item/${i.image.full}`;
+      for (const [name, id] of Object.entries(PINNED)) if (data.data[id]) imgs[name] = `item/${data.data[id].image.full}`;
       // Trinkets get their own slot, so they're kept out of the item list.
       const shop = list.filter(isShopItem);
       const tr = list.filter((i) => isTrinket(i) && !i.hideFromAll && (i.maps?.["11"] || i.maps?.["12"]));
