@@ -3,7 +3,7 @@ import { $, download, stamp, toast } from "./dom";
 import { canvasToBlob, ensureFont, render, toPlainText } from "./render";
 import { loadScoreboardArt, renderScoreboard } from "./scoreboard";
 import { bannerWord, loadBannerArt, renderBanner } from "./banner";
-import { loadPopupArt, renderPopups } from "./popups";
+import { loadPopupArt, popupFrame, popupsDuration, renderPopups } from "./popups";
 import { playback } from "./popupPanel";
 import { state } from "./state";
 
@@ -37,8 +37,29 @@ async function exportPng(): Promise<void> {
   toast("PNG downloaded.");
 }
 
+export const POPUP_FPS = 60;
+
+// The whole popup clip, one PNG per frame, all the same size.
+async function exportPopupFrames(): Promise<void> {
+  const { popups, settings } = state;
+  if (!popups.length) return toast("Add a popup first.");
+  toast("Building frames...");
+  const art = await loadPopupArt(popups);
+  const frame = popupFrame(popups, art);
+  const count = Math.ceil(popupsDuration(popups) * POPUP_FPS) + 1;
+  const zip = new JSZip();
+  const c = document.createElement("canvas");
+  for (let i = 0; i < count; i++) {
+    renderPopups(c, popups, i / POPUP_FPS, settings.scale, art, frame);
+    zip.file(`frame-${String(i + 1).padStart(4, "0")}.png`, await canvasToBlob(c));
+  }
+  download(await zip.generateAsync({ type: "blob" }), `popups-frames-${stamp()}.zip`);
+  toast(`${count} frames at ${POPUP_FPS} fps downloaded.`);
+}
+
 // One PNG per line, each showing one more message. Same size so they stack in an editor.
 async function exportFrames(): Promise<void> {
+  if (state.view === "popups") return exportPopupFrames();
   const { lines, settings } = state;
   if (!lines.length) return toast("Add a line first.");
   await ensureFont(settings);

@@ -73,7 +73,8 @@ export function mountPreview(): void {
       // only a convenience
     }
     const chat = view === "chat";
-    for (const id of ["#btn-frames", "#btn-copy", "#btn-txt"]) $<HTMLButtonElement>(id).hidden = !chat;
+    for (const id of ["#btn-copy", "#btn-txt"]) $<HTMLButtonElement>(id).hidden = !chat;
+    $<HTMLButtonElement>("#btn-frames").hidden = !chat && view !== "popups";
     // The scoreboard editor has many fields, so it gets the wider column.
     $<HTMLElement>(".layout").classList.toggle("sb", view === "scoreboard");
     // Style and timestamps only change the chat.
