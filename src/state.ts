@@ -1,4 +1,4 @@
-import type { ChatLine, Settings } from "./types";
+import type { ChatLine, Player, Settings } from "./types";
 
 export const DEFAULT_SETTINGS: Settings = {
   fontFamily: "Gill Sans",
@@ -60,11 +60,30 @@ const SAMPLE: Partial<ChatLine>[] = [
   { time: "24:10", channel: "all", name: "Nessie", champion: "Ezreal", body: "hungry" },
 ];
 
+// Builds a roster from whoever already speaks in the lines.
+export function playersFromLines(lines: ChatLine[]): Player[] {
+  const seen = new Map<string, Player>();
+  for (const l of lines) {
+    if (l.team === "system" || !l.name.trim()) continue;
+    const key = `${l.team}|${l.name}|${l.champion}`;
+    if (!seen.has(key)) seen.set(key, { id: newId(), team: l.team, name: l.name, champion: l.champion });
+  }
+  return [...seen.values()];
+}
+
+const sampleLines = SAMPLE.map(makeLine);
+
 // Everything the app edits lives here. Call changed() after any edit.
 export const state = {
   settings: structuredClone(DEFAULT_SETTINGS),
-  lines: SAMPLE.map(makeLine),
+  lines: sampleLines,
+  players: playersFromLines(sampleLines),
 };
+
+// The roster entry a line was written by, if any.
+export function playerOf(line: ChatLine): Player | undefined {
+  return state.players.find((p) => p.team === line.team && p.name === line.name && p.champion === line.champion);
+}
 
 type Listener = (structural: boolean) => void;
 const listeners: Listener[] = [];

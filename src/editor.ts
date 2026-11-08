@@ -1,7 +1,7 @@
 import type { Channel, ChatLine, LineKind, Team } from "./types";
 import { championPicker } from "./namePicker";
 import { $, el } from "./dom";
-import { changed, makeLine, newId, onChange, state } from "./state";
+import { changed, makeLine, newId, onChange, playerOf, state } from "./state";
 import { findTimeIssues, fixTimes } from "./timeCheck";
 
 export function mountEditor(): void {
@@ -63,6 +63,42 @@ export function addLine(list: HTMLElement, patch: Partial<ChatLine>): void {
   bodies[bodies.length - 1]?.focus();
 }
 
+// Lines whose speaker is being typed in by hand rather than picked.
+const customSpeaker = new Set<string>();
+
+// "Who" menu: roster players by team, system, or someone typed by hand.
+function speakerSelect(l: ChatLine): HTMLSelectElement {
+  const group = (team: "ally" | "enemy", label: string) =>
+    el(
+      "optgroup",
+      { label },
+      state.players
+        .filter((p) => p.team === team)
+        .map((p) => el("option", { value: p.id, textContent: p.champion ? `${p.name || "(no name)"} (${p.champion})` : p.name || "(no name)" })),
+    );
+  const select = el("select", { className: "f-who", "aria-label": "Who" }, [
+    group("ally", "Allies"),
+    group("enemy", "Enemies"),
+    el("option", { value: "system", textContent: "System message" }),
+    el("option", { value: "custom", textContent: "Someone else..." }),
+  ]);
+  const player = playerOf(l);
+  select.value = l.team === "system" ? "system" : player && !customSpeaker.has(l.id) ? player.id : "custom";
+
+  select.addEventListener("change", () => {
+    customSpeaker.delete(l.id);
+    const picked = state.players.find((p) => p.id === select.value);
+    if (picked) Object.assign(l, { team: picked.team, name: picked.name, champion: picked.champion });
+    else if (select.value === "system") l.team = "system";
+    else {
+      customSpeaker.add(l.id);
+      if (l.team === "system") l.team = "ally";
+    }
+    changed(true);
+  });
+  return select;
+}
+
 function lineCard(l: ChatLine, index: number): HTMLLIElement {
   const li = el("li", { className: "line", "data-team": l.team, "data-id": l.id });
   const set = (patch: Partial<ChatLine>) => {
@@ -85,7 +121,6 @@ function lineCard(l: ChatLine, index: number): HTMLLIElement {
   const team = el("select", { "aria-label": "Team" }, [
     el("option", { value: "ally", textContent: "Ally" }),
     el("option", { value: "enemy", textContent: "Enemy" }),
-    el("option", { value: "system", textContent: "System" }),
   ]);
   team.value = l.team;
   team.addEventListener("change", () => {
@@ -126,9 +161,12 @@ function lineCard(l: ChatLine, index: number): HTMLLIElement {
     }, "del"),
   ]);
 
+  const who = speakerSelect(l);
+  const typedByHand = who.value === "custom";
+
   li.append(
-    el("div", { className: "row" }, [time, team, channel, kind, tools]),
-    el("div", { className: "row" }, [name, championPicker(champ)]),
+    el("div", { className: "row" }, [time, who, channel, kind, tools]),
+    ...(typedByHand ? [el("div", { className: "row" }, [team, name, championPicker(champ)])] : []),
     el("div", { className: "row" }, [body]),
     el("p", { className: "time-note", "aria-live": "polite" }),
   );

@@ -271,3 +271,18 @@ option { color: var(--text); }
 .line.time-bad .f-time { border-color: var(--enemy); }
 .time-note { margin: 0; font-size: 12px; color: var(--enemy); }
 .time-note:empty { display: none; }
+
+/* players */
+.column { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.roster { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 560px) { .roster { grid-template-columns: 1fr; } }
+.roster-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.roster-head { display: flex; align-items: center; justify-content: space-between; }
+.roster-head h3 { margin: 0; font-size: 12px; font-weight: 500; }
+.roster-col[data-team="ally"] h3 { color: var(--ally); }
+.roster-col[data-team="enemy"] h3 { color: var(--enemy); }
+.roster-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 4px; align-items: center; }
+.roster-row .p-del { border-color: transparent; padding: 2px 7px; font-size: 12px; color: var(--faint); }
+.roster-row .p-del:hover { color: var(--enemy); }
+.roster-empty { margin: 0; font-size: 12px; color: var(--faint); }
+.f-who { min-width: 0; max-width: 220px; }

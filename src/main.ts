@@ -6,12 +6,14 @@ import { mountEditor } from "./editor";
 import { mountExporters } from "./exporters";
 import { mountPingBuilder } from "./pingBuilder";
 import { mountPreview } from "./preview";
+import { mountRoster } from "./roster";
 import { mountProjectFiles, restoreAutosave } from "./project";
 import { mountStyleControls } from "./styleControls";
 
 restoreAutosave();
 void refreshChampions();
 void loadGameData();
+mountRoster();
 mountEditor();
 mountPingBuilder();
 mountStyleControls();

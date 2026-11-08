@@ -1,12 +1,12 @@
 import type { ChatLine, Palette, Project } from "./types";
 import { $, download, stamp, toast } from "./dom";
-import { changed, DEFAULT_SETTINGS, makeLine, OLD_DEFAULT_PALETTES, onChange, state } from "./state";
+import { changed, DEFAULT_SETTINGS, makeLine, newId, OLD_DEFAULT_PALETTES, onChange, playersFromLines, state } from "./state";
 import { syncStyleControls } from "./styleControls";
 
 const STORAGE_KEY = "chat-log-maker:v1";
 
 function snapshot(): Project {
-  return { version: 1, settings: state.settings, lines: state.lines };
+  return { version: 1, settings: state.settings, lines: state.lines, players: state.players };
 }
 
 // Keeps colors the user picked, but swaps untouched old defaults for the new ones.
@@ -35,6 +35,10 @@ function apply(data: unknown): void {
     const channel = old.channel ?? (old.allChat ? "all" : "");
     return makeLine({ ...old, channel, id: undefined });
   });
+  // Saves from before the roster existed get one built from their lines.
+  state.players = Array.isArray(p.players)
+    ? p.players.map((pl) => ({ ...pl, id: newId() }))
+    : playersFromLines(state.lines);
 }
 
 // Run before the UI mounts so it starts from the saved log.

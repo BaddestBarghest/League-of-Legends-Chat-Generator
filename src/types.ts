@@ -16,6 +16,14 @@ export interface ChatLine {
   body: string;
 }
 
+// Someone in the match, set up once and picked from a list.
+export interface Player {
+  id: string;
+  team: "ally" | "enemy";
+  name: string;
+  champion: string;
+}
+
 export interface Palette {
   ally: string;
   enemy: string;
@@ -46,4 +54,5 @@ export interface Project {
   version: 1;
   settings: Settings;
   lines: ChatLine[];
+  players?: Player[];
 }
