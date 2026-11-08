@@ -4,7 +4,7 @@ import { ensureFont, lineAt, measure, render } from "./render";
 import { loadScoreboardArt, renderScoreboard, scoreboardSize } from "./scoreboard";
 import { bannerSize, loadBannerArt, renderBanner } from "./banner";
 import { loadPopupArt, popupsSize, renderPopups } from "./popups";
-import { onPlayback, playback } from "./popupPanel";
+import { clipNow, onPlayback } from "./popupPanel";
 import { changed, onChange, state } from "./state";
 
 export function mountPreview(): void {
@@ -30,7 +30,7 @@ export function mountPreview(): void {
     } else if (state.view === "popups") {
       const art = await loadPopupArt(state.popups);
       if (ticket !== drawing) return;
-      renderPopups(canvas, state.popups, playback.time, dpr, art);
+      renderPopups(canvas, state.popups, clipNow(), dpr, art);
       size = popupsSize(state.popups, art);
     } else if (state.view === "banner") {
       const art = await loadBannerArt(state.banner);

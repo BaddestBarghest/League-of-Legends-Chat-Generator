@@ -162,6 +162,10 @@
             <button id="pp-play" type="button" class="small">Play</button>
             <input id="pp-time" type="range" min="0" max="1" step="0.01" aria-label="Time" />
             <output id="pp-clock"></output>
+            <label class="pp-speed" title="Slow motion below 1×. Applies to the preview and every export.">Speed
+              <input id="pp-speed" type="range" min="0.25" max="2" step="0.05" />
+              <output id="pp-speed-out"></output>
+            </label>
           </div>
           <p class="hint">Each popup starts from the game's look and motion. Change its text, colors or icon to make your own. Download PNG saves the moment shown, Frames .zip saves the whole clip at 60 fps, and WebM saves it as a video that keeps the transparency.</p>
           <div id="pp-list" class="pp-list"></div>

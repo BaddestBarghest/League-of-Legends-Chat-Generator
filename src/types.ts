@@ -105,5 +105,6 @@ export interface Project {
   scoreboard?: { allyTurrets: number; enemyTurrets: number };
   banner?: Banner & { imageData?: string };
   popups?: Popup[];
+  popupSpeed?: number; // 1 is the game's speed
   popupIcons?: Record<string, string>; // custom icons as data URLs, by popup id
 }

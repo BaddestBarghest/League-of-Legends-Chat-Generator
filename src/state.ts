@@ -116,6 +116,7 @@ export const state = {
   scoreboard: { allyTurrets: 0, enemyTurrets: 0 },
   banner: defaultBanner(),
   popups: defaultPopups(),
+  popupSpeed: 1,
   // Which picture the preview and PNG export show.
   view: "chat" as "chat" | "scoreboard" | "banner" | "popups",
 };

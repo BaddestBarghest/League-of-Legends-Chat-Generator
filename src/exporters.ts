@@ -3,8 +3,8 @@ import { $, download, stamp, toast } from "./dom";
 import { canvasToBlob, ensureFont, render, toPlainText } from "./render";
 import { loadScoreboardArt, renderScoreboard } from "./scoreboard";
 import { bannerWord, loadBannerArt, renderBanner } from "./banner";
-import { loadPopupArt, popupFrame, popupsDuration, renderPopups } from "./popups";
-import { playback } from "./popupPanel";
+import { clipLength, loadPopupArt, popupFrame, renderPopups } from "./popups";
+import { clipNow, playback } from "./popupPanel";
 import { state } from "./state";
 
 async function exportPng(): Promise<void> {
@@ -19,7 +19,7 @@ async function exportPng(): Promise<void> {
   }
   if (state.view === "popups") {
     if (!state.popups.length) return toast("Add a popup first.");
-    renderPopups(c, state.popups, playback.time, state.settings.scale, await loadPopupArt(state.popups));
+    renderPopups(c, state.popups, clipNow(), state.settings.scale, await loadPopupArt(state.popups));
     download(await canvasToBlob(c), `popups-${stamp()}.png`);
     toast(`PNG of ${playback.time.toFixed(2)}s downloaded.`);
     return;
@@ -46,11 +46,11 @@ async function exportPopupFrames(): Promise<void> {
   toast("Building frames...");
   const art = await loadPopupArt(popups);
   const frame = popupFrame(popups, art);
-  const count = Math.ceil(popupsDuration(popups) * POPUP_FPS) + 1;
+  const count = Math.ceil(clipLength(popups, state.popupSpeed) * POPUP_FPS) + 1;
   const zip = new JSZip();
   const c = document.createElement("canvas");
   for (let i = 0; i < count; i++) {
-    renderPopups(c, popups, i / POPUP_FPS, settings.scale, art, frame);
+    renderPopups(c, popups, (i / POPUP_FPS) * state.popupSpeed, settings.scale, art, frame);
     zip.file(`frame-${String(i + 1).padStart(4, "0")}.png`, await canvasToBlob(c));
   }
   download(await zip.generateAsync({ type: "blob" }), `popups-frames-${stamp()}.zip`);
@@ -80,9 +80,9 @@ async function exportPopupWebm(): Promise<void> {
     const source = new CanvasSource(out, { codec: "vp9", bitrate: QUALITY_VERY_HIGH, alpha: "keep" });
     output.addVideoTrack(source, { frameRate: POPUP_FPS });
     await output.start();
-    const count = Math.ceil(popupsDuration(popups) * POPUP_FPS) + 1;
+    const count = Math.ceil(clipLength(popups, state.popupSpeed) * POPUP_FPS) + 1;
     for (let i = 0; i < count; i++) {
-      renderPopups(c, popups, i / POPUP_FPS, settings.scale, art, frame);
+      renderPopups(c, popups, (i / POPUP_FPS) * state.popupSpeed, settings.scale, art, frame);
       ctx.clearRect(0, 0, out.width, out.height);
       ctx.drawImage(c, 0, 0);
       // The last frame is a full keyframe, so nothing from the fade lingers on it.

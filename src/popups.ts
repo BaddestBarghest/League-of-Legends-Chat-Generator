@@ -41,8 +41,12 @@ export async function loadPopupArt(popups: Popup[]): Promise<PopupArt> {
 
 const typeOf = (p: Popup): PopupType => POPUP_TYPES[p.type] ?? POPUP_TYPES.gold;
 
-// How long the whole clip runs.
+// How long the whole clip runs at the game's speed.
 export const popupsDuration = (popups: Popup[]) => Math.max(0.5, ...popups.map((p) => p.start + lifeOf(typeOf(p))));
+
+// The speed slider stretches the clip. Times on the timeline and in exports
+// are real seconds, popups are drawn at real time × speed.
+export const clipLength = (popups: Popup[], speed: number) => popupsDuration(popups) / speed;
 
 interface Pose {
   x: number; // from the champion, right is positive

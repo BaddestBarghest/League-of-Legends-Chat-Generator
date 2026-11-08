@@ -1,12 +1,14 @@
 import type { Popup, PopupIcon } from "./types";
 import { $, el, toast } from "./dom";
 import { setImage } from "./imageStore";
-import { customIconKey, popupsDuration } from "./popups";
+import { clipLength, customIconKey } from "./popups";
 import { ICONS, POPUP_TYPES } from "./popupTypes";
 import { changed, makePopup, onChange, state } from "./state";
 
 // Playback is shared with the preview, which reads the time from here.
+// time is real seconds, so slow motion takes longer to play.
 export const playback = { time: 0.35, playing: false };
+export const clipNow = () => playback.time * state.popupSpeed;
 const listeners = new Set<() => void>();
 export const onPlayback = (fn: () => void) => listeners.add(fn);
 const tick = () => listeners.forEach((fn) => fn());
@@ -32,6 +34,8 @@ export function mountPopupPanel(): void {
   const play = $<HTMLButtonElement>("#pp-play");
   const scrub = $<HTMLInputElement>("#pp-time");
   const clock = $<HTMLOutputElement>("#pp-clock");
+  const speed = $<HTMLInputElement>("#pp-speed");
+  const speedOut = $<HTMLOutputElement>("#pp-speed-out");
   addType.replaceChildren(...typeOptions("gold"));
 
   const card = (p: Popup) => {
@@ -123,7 +127,7 @@ export function mountPopupPanel(): void {
       ]),
       el("div", { className: "pp-row" }, [
         el("label", { className: "pp-size" }, ["Size", size, sizeOut]),
-        num("Start", "start", 0.05, "Seconds into the clip"),
+        num("Start", "start", 0.05, "Seconds into the clip at 1× speed"),
         num("X", "x", 1, "Pixels right of the champion"),
         num("Y", "y", 1, "Pixels below the champion. Negative is higher."),
         ...extras,
@@ -147,8 +151,10 @@ export function mountPopupPanel(): void {
 
   // Playback
   const showTime = () => {
-    const end = popupsDuration(state.popups);
+    const end = clipLength(state.popups, state.popupSpeed);
     scrub.max = String(end);
+    if (document.activeElement !== speed) speed.value = String(state.popupSpeed);
+    speedOut.textContent = `${state.popupSpeed}×`;
     scrub.value = String(playback.time);
     clock.textContent = `${playback.time.toFixed(2)}s / ${end.toFixed(2)}s`;
     play.textContent = playback.playing ? "Pause" : "Play";
@@ -156,7 +162,7 @@ export function mountPopupPanel(): void {
   let last = 0;
   const step = (now: number) => {
     if (!playback.playing) return;
-    const end = popupsDuration(state.popups);
+    const end = clipLength(state.popups, state.popupSpeed);
     playback.time += (now - last) / 1000;
     last = now;
     if (playback.time > end + 0.4) playback.time = 0; // a short pause, then loop
@@ -171,6 +177,13 @@ export function mountPopupPanel(): void {
       requestAnimationFrame(step);
     }
     showTime();
+  });
+  // Keeps the same moment on screen when the speed changes.
+  speed.addEventListener("input", () => {
+    const at = clipNow();
+    state.popupSpeed = Number(speed.value);
+    playback.time = at / state.popupSpeed;
+    changed();
   });
   scrub.addEventListener("input", () => {
     playback.playing = false;
