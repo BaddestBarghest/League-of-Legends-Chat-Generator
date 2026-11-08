@@ -1,7 +1,6 @@
 import type { Player, PlayerStats, Settings } from "./types";
 import type { IconKind } from "./gameData";
 import { loadIcon, loadImage } from "./icons";
-import { fontString } from "./render";
 import { statsOf } from "./state";
 
 // The Tab scoreboard, drawn with the game's own scoreboard art from
@@ -24,6 +23,12 @@ const SPRITE: Record<string, Rect> = {
   bag: [1797, 486, 11, 12],
   turret: [1838, 15, 32, 48],
 };
+
+// The scoreboard's text is Beaufort for LOL Bold. It can't be shared, so it's
+// used when the user loads it (see Fonts), with Spectral as a free stand-in.
+export const SCOREBOARD_FONT = "Beaufort for LOL";
+const FONT_STACK = '"Beaufort for LOL", Spectral, Georgia, serif';
+const CAP = 0.666; // Beaufort's digit and capital height, as a share of the size
 
 const FRAME_SCALE = 0.95; // the game draws the frame at 95%
 const RING_SCALE = 0.87; // and the portrait rings at 87%
@@ -111,6 +116,7 @@ export async function loadScoreboardArt(players: Player[]): Promise<ScoreboardAr
   const icons = new Map<string, HTMLImageElement | null>();
   const [atlas] = await Promise.all([
     loadAtlas(),
+    document.fonts.load(`bold 16px ${FONT_STACK}`).catch(() => []),
     ...wanted.map(async ([kind, name]) => icons.set(key(kind, name), await loadIcon(kind, name))),
   ]);
   return { icons, atlas };
@@ -143,11 +149,13 @@ export function renderScoreboard(
     ctx.drawImage(atlas!, sx, sy, sw, sh, dx, dy, dw, dh);
   };
 
-  const font = (px: number, bold = false) => fontString({ ...s, fontSize: px }, 1, bold);
-  const text = (str: string, x: number, y: number, color: string, px: number, align: CanvasTextAlign = "left", bold = false) => {
-    ctx.font = font(px, bold);
+  // Text is placed by the middle of its digits and capitals, the way the
+  // positions were measured, so any font lines up the same.
+  const text = (str: string, x: number, y: number, color: string, px: number, align: CanvasTextAlign = "left") => {
+    ctx.font = `bold ${px}px ${FONT_STACK}`;
     ctx.textAlign = align;
-    ctx.textBaseline = "middle";
+    ctx.textBaseline = "alphabetic";
+    y += (px * CAP) / 2;
     ctx.lineJoin = "round";
     ctx.strokeStyle = "rgba(0,0,0,0.7)";
     ctx.lineWidth = Math.max(2, px * 0.12);
@@ -155,19 +163,20 @@ export function renderScoreboard(
     ctx.fillStyle = color;
     ctx.fillText(str, x, y);
   };
+  void s;
 
   if (atlas) drawFrame(height);
   else drawPlainFrame(height);
 
   // Header: turrets on the outside, kills in the middle.
-  const mid = 33;
-  text(String(sum(players, "ally", "kills")), HALF - 24, mid, C.allyKills, 24, "right", true);
-  text(String(sum(players, "enemy", "kills")), HALF + 13, mid, C.enemyKills, 24, "left", true);
+  const mid = 32.5;
+  text(String(sum(players, "ally", "kills")), HALF - 24, mid, C.allyKills, 23, "right");
+  text(String(sum(players, "enemy", "kills")), HALF + 13, mid, C.enemyKills, 23, "left");
   sword(ctx, HALF - 5, mid);
-  turretIcon(HALF - 106, mid + 1);
-  text(String(opts.allyTurrets), HALF - 85, mid + 1, C.allyKills, 16, "center", true);
-  turretIcon(HALF + 96, mid + 1);
-  text(String(opts.enemyTurrets), HALF + 114, mid + 1, C.enemyKills, 16, "center", true);
+  turretIcon(HALF - 106, mid + 1.5);
+  text(String(opts.allyTurrets), HALF - 85, mid + 1, C.allyKills, 16, "center");
+  turretIcon(HALF + 96, mid + 1.5);
+  text(String(opts.enemyTurrets), HALF + 114, mid + 1, C.enemyKills, 16, "center");
 
   // Allies on the left with their ping buttons first, enemies on the right
   // with the buttons last, like the game.
@@ -251,15 +260,15 @@ export function renderScoreboard(
       portraitWithBadges(icons.get(key("champion", p.champion)), o + 87.4, cy, p.team, dead, st);
 
       // Creep score and K/D/A, with the bounty above when there is one.
-      text(String(st.cs), o + 159, cy, C.cs, 16, "center", true);
-      text(`${st.kills}/${st.deaths}/${st.assists}`, o + 221.5, cy, C.kda, 16, "center", true);
+      text(String(st.cs), o + 159, cy + 2.5, C.cs, 16, "center");
+      text(`${st.kills}/${st.deaths}/${st.assists}`, o + 221.5, cy + 2.5, C.kda, 16, "center");
       if (st.bounty > 0) {
         if (atlas) sprite("bag", o + 192, cy - 23, 11, 12);
-        text(`${st.bounty}G`, o + 233, cy - 17, C.bounty, 12, "center", true);
+        text(`${st.bounty}G`, o + 233, cy - 16.5, C.bounty, 12, "center");
       }
 
       // Name, then six item slots and the trinket.
-      text(p.name, o + 272, cy - 21.5, dead ? C.nameDead : C.nameAlive, 12, "left", true);
+      text(p.name, o + 272, cy - 22, dead ? C.nameDead : C.nameAlive, 12, "left");
       for (let slot = 0; slot < 6; slot++) tile(ctx, icons.get(key("item", st.items[slot])), o + 272 + slot * 31, cy - 10.5, 28);
       tile(ctx, icons.get(key("item", st.items[6])), o + 464, cy - 10.5, 28);
     });
@@ -304,8 +313,8 @@ export function renderScoreboard(
       badge(ctx, left.x, left.y, 9, team === "ally" ? "#0b1a2a" : "#3a0606", rim);
       badge(ctx, right.x, right.y, 9, C.badge, rim);
     }
-    text(String(st.level), right.x, right.y + 0.5, C.badgeText, 11, "center", true);
-    if (dead) text(String(st.respawn), px, py + 1, C.respawn, 22, "center", true);
+    text(String(st.level), right.x, right.y, C.badgeText, 11, "center");
+    if (dead) text(String(st.respawn), px, py + 2, C.respawn, 26, "center");
   }
 }
 
