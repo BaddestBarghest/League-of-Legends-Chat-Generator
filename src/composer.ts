@@ -1,8 +1,8 @@
 import type { ChatLine, Channel, Player } from "./types";
 import { $, el } from "./dom";
 import { getOpenLineId, openLine } from "./editor";
-import { getAbilities, getItems, getRunes, getSpells, loadAbilities } from "./gameData";
-import { championPicker, namePicker } from "./namePicker";
+import { getAbilities, getRunes, loadAbilities } from "./gameData";
+import { championPicker, itemPicker, namePicker, spellPicker } from "./namePicker";
 import { PARAMS, PINGS, pingToLine, type ParamKey } from "./pings";
 import { changed, makeLine, onChange, playerOf, state } from "./state";
 
@@ -101,9 +101,9 @@ export function mountComposer(): void {
     input.addEventListener("input", () => (values[key] = input.value));
     let field: HTMLElement = input;
     if (key === "enemy" || key === "ally") field = championPicker(input);
-    else if (key === "item") field = namePicker(input, getItems);
-    else if (key === "rune") field = namePicker(input, getRunes);
-    else if (key === "spell") field = namePicker(input, getSpells, { showAllWhenEmpty: true });
+    else if (key === "item") field = itemPicker(input);
+    else if (key === "rune") field = namePicker(input, getRunes, { icons: "rune" });
+    else if (key === "spell") field = spellPicker(input);
     else if (key === "ability")
       field = namePicker(input, () => getAbilities(pingChampion()), {
         showAllWhenEmpty: true,

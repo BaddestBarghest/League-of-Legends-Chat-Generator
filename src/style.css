@@ -463,3 +463,21 @@ input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 50%; }
 .fonts-saved { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .fonts-saved li { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
 .fonts-saved .font-none { color: var(--faint); }
+
+/* icon pickers */
+.cb.with-icon > input { padding-left: 32px; }
+.cb-icon {
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  margin-top: -10px;
+  border-radius: 3px;
+  pointer-events: none;
+}
+.stats .cb-icon { width: 18px; height: 18px; margin-top: -9px; left: 5px; }
+.stats .cb.with-icon > input { padding-left: 28px; }
+.cb-list li { display: flex; align-items: center; gap: 8px; }
+.cb-list li img, .cb-noicon { flex: none; width: 24px; height: 24px; border-radius: 4px; background: var(--bg); }
+.cb.with-icon .cb-list { min-width: 240px; max-height: 320px; }

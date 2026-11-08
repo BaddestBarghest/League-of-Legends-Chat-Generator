@@ -1,28 +1,47 @@
 import { getChampions } from "./champions";
 import { el } from "./dom";
 import { fuzzySearch } from "./fuzzy";
+import { getItems, getSpells, getTrinkets, iconUrl, type IconKind } from "./gameData";
 
 let uid = 0;
 
-// Wraps a text input with a suggestion list drawn from getNames. Put the
-// returned element where the input would have gone. Picking a name fires a
-// normal input event, so existing listeners still see the change.
-// With showAllWhenEmpty, an empty field lists everything on focus. Good for
-// short lists like one champion's five abilities.
-export function namePicker(
-  input: HTMLInputElement,
-  getNames: () => string[],
-  opts: { showAllWhenEmpty?: boolean; onFocus?: () => Promise<void> } = {},
-): HTMLElement {
+export interface PickerOptions {
+  // Clicking an empty field lists everything, so you can browse.
+  showAllWhenEmpty?: boolean;
+  // Shows each name's icon in the list and the chosen one in the field.
+  icons?: IconKind;
+  onFocus?: () => Promise<void>;
+}
+
+// Wraps a text input with a suggestion list drawn from getNames, matched with
+// typo-tolerant search. Put the returned element where the input would have
+// gone. Picking a name fires a normal input event, so existing listeners
+// still see the change.
+export function namePicker(input: HTMLInputElement, getNames: () => string[], opts: PickerOptions = {}): HTMLElement {
   const listId = `name-list-${uid++}`;
   const list = el("ul", { className: "cb-list", id: listId, role: "listbox", hidden: true });
-  const wrap = el("span", { className: `cb ${input.className}` }, [input, list]);
+  const chosen = el("img", { className: "cb-icon", alt: "", hidden: true });
+  chosen.addEventListener("error", () => (chosen.hidden = true));
+  const wrap = el("span", { className: `cb${opts.icons ? " with-icon" : ""} ${input.className}` }, [
+    ...(opts.icons ? [chosen] : []),
+    input,
+    list,
+  ]);
   input.className = "";
   input.setAttribute("role", "combobox");
   input.setAttribute("aria-autocomplete", "list");
   input.setAttribute("aria-expanded", "false");
   input.setAttribute("aria-controls", listId);
   input.autocomplete = "off";
+
+  // The icon for the current value sits inside the field.
+  const showChosen = () => {
+    if (!opts.icons) return;
+    const url = input.value.trim() ? iconUrl(opts.icons, input.value) : undefined;
+    chosen.hidden = !url;
+    if (url && chosen.src !== url) chosen.src = url;
+  };
+  showChosen();
 
   let matches: string[] = [];
   let active = 0;
@@ -34,18 +53,24 @@ export function namePicker(
     input.removeAttribute("aria-activedescendant");
   };
 
+  const option = (name: string, i: number) => {
+    const url = opts.icons ? iconUrl(opts.icons, name) : undefined;
+    const li = el("li", { role: "option", id: `${listId}-${i}`, "aria-selected": String(i === active) }, [
+      ...(opts.icons
+        ? [url ? el("img", { src: url, alt: "", loading: "lazy" }) : el("span", { className: "cb-noicon" })]
+        : []),
+      el("span", { textContent: name }),
+    ]);
+    // mousedown so the input keeps focus
+    li.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      pick(name);
+    });
+    return li;
+  };
+
   const draw = () => {
-    list.replaceChildren(
-      ...matches.map((name, i) => {
-        const li = el("li", { role: "option", id: `${listId}-${i}`, textContent: name, "aria-selected": String(i === active) });
-        // mousedown so the input keeps focus
-        li.addEventListener("mousedown", (e) => {
-          e.preventDefault();
-          pick(name);
-        });
-        return li;
-      }),
-    );
+    list.replaceChildren(...matches.map(option));
     list.hidden = matches.length === 0;
     input.setAttribute("aria-expanded", String(!list.hidden));
     if (!list.hidden) {
@@ -54,17 +79,29 @@ export function namePicker(
     }
   };
 
+  // Moves the highlight without rebuilding the list, so icons don't reload.
+  const highlight = (next: number) => {
+    list.children[active]?.setAttribute("aria-selected", "false");
+    active = next;
+    list.children[active]?.setAttribute("aria-selected", "true");
+    input.setAttribute("aria-activedescendant", `${listId}-${active}`);
+    list.children[active]?.scrollIntoView({ block: "nearest" });
+  };
+
   const pick = (name: string) => {
     picking = true;
     input.value = name;
     input.dispatchEvent(new Event("input", { bubbles: true }));
     picking = false;
+    showChosen();
     close();
   };
 
   const suggest = () => {
     const names = getNames();
-    matches = opts.showAllWhenEmpty && !input.value.trim() ? names.slice(0, 12) : fuzzySearch(input.value, names);
+    const browsing = opts.showAllWhenEmpty && !input.value.trim();
+    // Icon lists are easy to scan, so they show more at once.
+    matches = browsing ? names : fuzzySearch(input.value, names, opts.icons ? 30 : 8);
     // Don't suggest when it's already spelled right.
     if (matches.length === 1 && matches[0] === input.value) matches = [];
     active = 0;
@@ -72,20 +109,28 @@ export function namePicker(
   };
 
   input.addEventListener("input", () => {
+    showChosen();
     if (!picking) suggest();
   });
-  input.addEventListener("focus", async () => {
+  const open = async () => {
     await opts.onFocus?.();
-    if (opts.showAllWhenEmpty && document.activeElement === input) suggest();
-  });
+    if (opts.showAllWhenEmpty && document.activeElement === input && list.hidden) suggest();
+  };
+  input.addEventListener("focus", () => void open());
+  // Clicking a field that's already focused opens the list again.
+  input.addEventListener("click", () => void open());
 
   input.addEventListener("keydown", (e) => {
-    if (list.hidden) return;
+    if (list.hidden) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        suggest();
+      }
+      return;
+    }
     if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
-      const step = e.key === "ArrowDown" ? 1 : -1;
-      active = (active + step + matches.length) % matches.length;
-      draw();
+      highlight((active + (e.key === "ArrowDown" ? 1 : -1) + matches.length) % matches.length);
     } else if (e.key === "Enter" || e.key === "Tab") {
       if (e.key === "Enter") e.preventDefault();
       pick(matches[active]);
@@ -98,4 +143,7 @@ export function namePicker(
   return wrap;
 }
 
-export const championPicker = (input: HTMLInputElement) => namePicker(input, getChampions);
+export const championPicker = (input: HTMLInputElement) => namePicker(input, getChampions, { icons: "champion" });
+export const itemPicker = (input: HTMLInputElement) => namePicker(input, getItems, { icons: "item", showAllWhenEmpty: true });
+export const trinketPicker = (input: HTMLInputElement) => namePicker(input, getTrinkets, { icons: "item", showAllWhenEmpty: true });
+export const spellPicker = (input: HTMLInputElement) => namePicker(input, getSpells, { icons: "spell", showAllWhenEmpty: true });

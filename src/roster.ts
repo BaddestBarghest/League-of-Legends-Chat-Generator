@@ -1,7 +1,7 @@
 import type { Player } from "./types";
 import { $, el } from "./dom";
-import { getItems, getSpells, iconUrl } from "./gameData";
-import { championPicker, namePicker } from "./namePicker";
+import { iconUrl } from "./gameData";
+import { championPicker, itemPicker, spellPicker, trinketPicker } from "./namePicker";
 import { changed, newId, onChange, state, statsOf } from "./state";
 import { isCollapsed, setCollapsed } from "./collapse";
 
@@ -155,13 +155,13 @@ function statsPanel(p: Player, onEdit: () => void): HTMLElement {
     return el("label", {}, [label, input]);
   };
 
-  const pick = (label: string, value: string, names: () => string[], onSet: (v: string) => void, all = false) => {
+  const pick = (label: string, value: string, picker: (i: HTMLInputElement) => HTMLElement, onSet: (v: string) => void) => {
     const input = el("input", { type: "text", value, placeholder: "None", "aria-label": label });
     input.addEventListener("input", () => {
       onSet(input.value);
       save();
     });
-    return el("label", {}, [label, namePicker(input, names, { showAllWhenEmpty: all })]);
+    return el("label", {}, [label, picker(input)]);
   };
 
   const setSpell = (i: 0 | 1) => (v: string) => (s.spells[i] = v);
@@ -174,13 +174,13 @@ function statsPanel(p: Player, onEdit: () => void): HTMLElement {
     el("div", { className: "stats-four" }, [
       num("Dead (s)", "respawn", 999),
       num("Bounty", "bounty", 9999),
-      pick("Spell 1", s.spells[0], getSpells, setSpell(0), true),
-      pick("Spell 2", s.spells[1], getSpells, setSpell(1), true),
+      pick("Spell 1", s.spells[0], spellPicker, setSpell(0)),
+      pick("Spell 2", s.spells[1], spellPicker, setSpell(1)),
     ]),
     el(
       "div",
       { className: "stats-four" },
-      s.items.map((item, i) => pick(i === 6 ? "Trinket" : `Item ${i + 1}`, item, getItems, setItem(i))),
+      s.items.map((item, i) => (i === 6 ? pick("Trinket", item, trinketPicker, setItem(i)) : pick(`Item ${i + 1}`, item, itemPicker, setItem(i)))),
     ),
   ]);
 }

@@ -42,6 +42,8 @@ const clean = (s: string) => s.replace(/<[^>]+>/g, "").trim();
 const unique = (names: string[]) => [...new Set(names.map(clean).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
 let items: string[] = [];
+// Bundled so the trinket slot works before Riot's list arrives.
+let trinkets: string[] = ["Farsight Alteration", "Oracle Lens", "Poro-Snax", "Stealth Ward"];
 let runes: string[] = [];
 // Bundled so the most common field works offline.
 let spells: string[] = ["Barrier", "Cleanse", "Exhaust", "Flash", "Ghost", "Heal", "Ignite", "Smite", "Teleport"];
@@ -55,6 +57,7 @@ export type IconKind = "champion" | "item" | "spell" | "rune";
 let patch = "";
 
 export const getItems = () => items;
+export const getTrinkets = () => trinkets;
 export const getRunes = () => runes;
 export const getSpells = () => spells;
 export const getAbilities = (champion: string) => abilities.get(champion) ?? [];
@@ -75,7 +78,10 @@ interface RiotItem {
   inStore?: boolean;
   hideFromAll?: boolean;
   requiredChampion?: string;
+  tags?: string[];
 }
+
+const isTrinket = (i: RiotItem) => clean(i.name) === "Poro-Snax" || Boolean(i.tags?.includes("Trinket"));
 
 // Riot's item list also has Arena and Swarm entries named after abilities,
 // champion upgrades like Gangplank's ult, quests and hidden helpers. Only
@@ -90,19 +96,24 @@ function isShopItem(i: RiotItem): boolean {
 interface Listed {
   names: string[];
   images: Images;
+  trinkets?: string[];
 }
 
 export async function loadGameData(): Promise<void> {
   patch = await latestVersion().catch(() => "");
   const jobs: Promise<void>[] = [
-    cached<Listed>("items:v3", async () => {
+    cached<Listed>("items:v4", async () => {
       const data = await getJson("item.json");
       const list = Object.values(data.data as Record<string, RiotItem>);
       const imgs: Images = {};
       for (const i of list) imgs[clean(i.name)] ??= `item/${i.image.full}`;
-      return { names: unique(list.filter(isShopItem).map((i) => i.name)), images: imgs };
+      // Trinkets get their own slot, so they're kept out of the item list.
+      const shop = list.filter(isShopItem);
+      const tr = list.filter((i) => isTrinket(i) && !i.hideFromAll && (i.maps?.["11"] || i.maps?.["12"]));
+      return { names: unique(shop.filter((i) => !isTrinket(i)).map((i) => i.name)), images: imgs, trinkets: unique(tr.map((i) => i.name)) };
     }).then((v) => {
       items = v.names;
+      if (v.trinkets?.length) trinkets = v.trinkets;
       images.item = v.images;
     }),
     cached<Listed>("runes:v2", async () => {
