@@ -66,18 +66,81 @@ export async function ensureFont(s: Settings): Promise<void> {
   }
 }
 
-export function measure(lines: ChatLine[], s: Settings): { width: number; height: number } {
-  const ctx = document.createElement("canvas").getContext("2d")!;
+interface Piece {
+  text: string;
+  color: string;
+  x: number;
+}
+
+// Each chat line becomes one or more rows. With a width set, long lines wrap
+// and carry on from the left edge, like the game does.
+function layout(ctx: CanvasRenderingContext2D, lines: ChatLine[], s: Settings): Piece[][][] {
+  const outline = s.fontSize * s.outline;
+  const left = s.padding + outline;
+  const maxX = s.fixedWidth > 0 ? s.fixedWidth - s.padding - outline : Infinity;
+
+  return lines.map((line) => {
+    const rows: Piece[][] = [[]];
+    let x = left;
+    const put = (text: string, color: string) => {
+      rows[rows.length - 1].push({ text, color, x });
+      x += ctx.measureText(text).width;
+    };
+    const newRow = () => {
+      rows.push([]);
+      x = left;
+    };
+
+    for (const seg of lineSegments(line, s)) {
+      for (const token of seg.text.split(/(\s+)/)) {
+        if (!token) continue;
+        const w = ctx.measureText(token).width;
+        if (/^\s+$/.test(token)) {
+          // Spaces at the start of a wrapped row are dropped.
+          if (x > left) put(token, seg.color);
+          continue;
+        }
+        if (x + w > maxX && x > left) newRow();
+        if (left + w <= maxX) {
+          put(token, seg.color);
+          continue;
+        }
+        // A word wider than the whole box gets split by letter.
+        let chunk = "";
+        for (const ch of token) {
+          if (x + ctx.measureText(chunk + ch).width > maxX && chunk) {
+            put(chunk, seg.color);
+            newRow();
+            chunk = "";
+          }
+          chunk += ch;
+        }
+        if (chunk) put(chunk, seg.color);
+      }
+    }
+    return rows;
+  });
+}
+
+function rowWidth(row: Piece[], ctx: CanvasRenderingContext2D): number {
+  const last = row[row.length - 1];
+  return last ? last.x + ctx.measureText(last.text.trimEnd()).width : 0;
+}
+
+function measureWith(ctx: CanvasRenderingContext2D, lines: ChatLine[], s: Settings) {
   ctx.font = fontString(s);
-  let max = 0;
-  for (const line of lines) {
-    const w = lineSegments(line, s).reduce((acc, seg) => acc + ctx.measureText(seg.text).width, 0);
-    max = Math.max(max, w);
-  }
-  const lh = s.fontSize * s.lineHeight;
-  const width = s.fixedWidth > 0 ? s.fixedWidth : Math.ceil(max + s.padding * 2 + s.fontSize * s.outline * 2);
-  const height = Math.ceil(lines.length * lh + s.padding * 2);
-  return { width: Math.max(1, width), height: Math.max(1, height) };
+  const laid = layout(ctx, lines, s);
+  const rows = laid.reduce((n, l) => n + l.length, 0);
+  const outline = s.fontSize * s.outline;
+  const widest = Math.max(0, ...laid.flat().map((row) => rowWidth(row, ctx)));
+  const width = s.fixedWidth > 0 ? s.fixedWidth : Math.ceil(widest + s.padding + outline);
+  const height = Math.ceil(rows * s.fontSize * s.lineHeight + s.padding * 2);
+  return { laid, width: Math.max(1, width), height: Math.max(1, height) };
+}
+
+export function measure(lines: ChatLine[], s: Settings): { width: number; height: number } {
+  const { width, height } = measureWith(document.createElement("canvas").getContext("2d")!, lines, s);
+  return { width, height };
 }
 
 // Lines sit at the bottom like the in-game chat box.
@@ -88,10 +151,10 @@ export function render(
   scale: number,
   opts: RenderOptions = {},
 ): void {
-  const { width, height } = measure(lines, s);
+  const ctx = canvas.getContext("2d")!;
+  const { laid, width, height } = measureWith(ctx, lines, s);
   canvas.width = Math.round(width * scale);
   canvas.height = Math.round(height * scale);
-  const ctx = canvas.getContext("2d")!;
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
   ctx.clearRect(0, 0, width, height);
   if (opts.background) {
@@ -99,21 +162,22 @@ export function render(
     ctx.fillRect(0, 0, width, height);
   }
 
+  // Resizing the canvas resets its state, so set the font again.
   ctx.font = fontString(s);
   ctx.textBaseline = "alphabetic";
   ctx.lineJoin = "round";
   ctx.miterLimit = 2;
 
   const lh = s.fontSize * s.lineHeight;
-  const visible = lines.slice(0, opts.visibleCount ?? lines.length);
   const outline = s.fontSize * s.outline;
-  const startRow = lines.length - visible.length;
   const baselineOffset = (lh - s.fontSize) / 2 + s.fontSize * 0.8;
+  const rows = laid.slice(0, opts.visibleCount ?? laid.length).flat();
+  const totalRows = laid.reduce((n, l) => n + l.length, 0);
+  const startRow = totalRows - rows.length;
 
-  visible.forEach((line, i) => {
+  rows.forEach((row, i) => {
     const y = s.padding + (startRow + i) * lh + baselineOffset;
-    let x = s.padding + outline;
-    for (const seg of lineSegments(line, s)) {
+    for (const piece of row) {
       // Dark outline and shadow first so text reads on any background.
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,0.6)";
@@ -123,16 +187,15 @@ export function render(
       if (outline > 0) {
         ctx.strokeStyle = "rgba(0,0,0,0.78)";
         ctx.lineWidth = outline * 2;
-        ctx.strokeText(seg.text, x, y);
+        ctx.strokeText(piece.text, piece.x, y);
       } else {
-        ctx.fillStyle = seg.color;
-        ctx.fillText(seg.text, x, y);
+        ctx.fillStyle = piece.color;
+        ctx.fillText(piece.text, piece.x, y);
       }
       ctx.restore();
       // Then the colored text on top.
-      ctx.fillStyle = seg.color;
-      ctx.fillText(seg.text, x, y);
-      x += ctx.measureText(seg.text).width;
+      ctx.fillStyle = piece.color;
+      ctx.fillText(piece.text, piece.x, y);
     }
   });
 }
