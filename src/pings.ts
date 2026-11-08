@@ -93,7 +93,7 @@ export const PARAMS: Record<ParamKey, ParamDef> = {
   multikill: {
     label: "Multikill",
     placeholder: "none",
-    options: ["for a double kill!", "for a triple kill!", "for a quadra kill!", "for a penta kill!"],
+    options: ["for a double kill!", "for a triple kill!", "for a quadra kill!", "for a penta kill!", "for a legendary kill!"],
   },
   epic: {
     label: "Objective",
@@ -143,6 +143,11 @@ const shutdownLine = (killer: string, victim: string, bounty: string) =>
 // Baron and Atakhan go without "the", everything else takes it.
 const objectiveName = (name: string) => (/^(baron|ruinous|thornbound)/i.test(name) ? name : `the ${name}`);
 const teamGold = (gold: string) => (gold && gold !== "none" ? ` ${g("(Team Gold: ")}${y(`${gold.replace(/g$/i, "")}G`)}${g(")")}` : "");
+
+// "An Enemy Objective Bounty has been claimed on Baron Nashor! (Bonus Bounty: 600G split for their team.)"
+const objectiveBounty = (team: (s: string) => string, owner: string, target: string, gold: string) =>
+  `${g("An")} ${team(owner)} ${g("Objective Bounty has been claimed on")} ${team(target)}${g("! (Bonus Bounty: ")}` +
+  `${y(`${gold.replace(/g$/i, "")}G`)}${g(" split for their team.)")}`;
 
 const statValue = (stat: string, value: string) =>
   stat.toLowerCase() === "attack speed" ? `<green>${value}</green>` : `<cyan>${value}</cyan>`;
@@ -226,6 +231,11 @@ export const PINGS: PingDef[] = [
     build: (p) => `<b>${b(who(p.allyPlayer, p.ally))} ${g(`has slain ${objectiveName(p.epic)}!`)}</b>${teamGold(p.teamGold)}` },
   { id: "objective-enemy", group: KILLS, label: "Enemy team took objective", kind: "system", params: ["epic", "teamGold"],
     build: (p) => `<b>${g("The")} ${r("enemy team")} ${g(`has slain ${objectiveName(p.epic)}!`)}</b>${teamGold(p.teamGold)}` },
+  // The claiming team's color is used for both colored parts, like the game string.
+  { id: "objective-bounty-ally", group: KILLS, label: "Ally team claimed objective bounty", kind: "system", params: ["epic", "gold"],
+    build: (p) => objectiveBounty(b, "Enemy", p.epic, p.gold) },
+  { id: "objective-bounty-enemy", group: KILLS, label: "Enemy team claimed objective bounty", kind: "system", params: ["epic", "gold"],
+    build: (p) => objectiveBounty(r, "Ally", p.epic, p.gold) },
   { id: "ace-enemy", group: KILLS, label: "Enemy team ace", kind: "system", params: [], build: () => `${r("Enemy team")} ${g("has scored an ace!")}` },
   { id: "ace-ally", group: KILLS, label: "Ally team ace", kind: "system", params: [], build: () => `${b("Ally team")} ${g("has scored an ace!")}` },
 
