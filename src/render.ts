@@ -95,12 +95,12 @@ export function render(
     for (const seg of lineSegments(line, s)) {
       // Dark outline and shadow first so text reads on any background.
       ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.85)";
+      ctx.shadowColor = "rgba(0,0,0,0.6)";
       ctx.shadowBlur = s.shadow;
-      ctx.shadowOffsetX = s.shadow > 0 ? 1 : 0;
-      ctx.shadowOffsetY = s.shadow > 0 ? 1.5 : 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = s.shadow > 0 ? 1 : 0;
       if (outline > 0) {
-        ctx.strokeStyle = "rgba(0,0,0,0.9)";
+        ctx.strokeStyle = "rgba(0,0,0,0.78)";
         ctx.lineWidth = outline * 2;
         ctx.strokeText(seg.text, x, y);
       } else {
