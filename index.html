@@ -21,6 +21,10 @@
         <button type="button" role="tab" data-tab="scoreboard" aria-selected="false">Scoreboard</button>
       </nav>
       <div class="top-actions">
+        <div class="undo-group">
+          <button id="btn-undo" type="button" class="icon-btn" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+          <button id="btn-redo" type="button" class="icon-btn" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
+        </div>
         <button id="btn-fonts" type="button">Fonts<span id="fonts-dot" class="dot" hidden aria-label="A game font is missing"></span></button>
         <button id="btn-save" type="button">Save</button>
         <label class="file-btn">Open<input id="file-load" type="file" accept=".json,application/json" hidden /></label>

@@ -536,3 +536,9 @@ input[type="color"]:hover { box-shadow: 0 0 0 2px var(--border-hover); }
 
 /* The preview can be clicked to edit a line. */
 #preview:not([title=""]):hover { outline: 1px dashed var(--border-hover); outline-offset: 4px; }
+
+/* undo and redo */
+.undo-group { display: flex; gap: 2px; margin-right: 8px; }
+.icon-btn { width: var(--control); padding: 0; font-size: 16px; }
+button:disabled { opacity: 0.35; cursor: default; }
+button:disabled:hover { background: transparent; border-color: var(--border); }
