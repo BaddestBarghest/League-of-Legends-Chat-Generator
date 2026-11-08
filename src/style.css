@@ -483,3 +483,54 @@ input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 50%; }
 .cb-list li { display: flex; align-items: center; gap: 8px; }
 .cb-list li img, .cb-noicon { flex: none; width: 24px; height: 24px; border-radius: 4px; background: var(--bg); }
 .cb.with-icon .cb-list { min-width: 240px; max-height: 320px; }
+
+/* ---------- hover and press feedback ----------
+   Everything clickable gets a pointer, a visible hover and a pressed state. */
+
+button, .file-btn, select, summary, .toggle, input[type="range"], input[type="color"], input[type="checkbox"] { cursor: pointer; }
+button:active, .file-btn:active { background: var(--border); }
+.primary:active, .file-btn.primary:active { background: #d6d6da; border-color: #d6d6da; }
+
+/* Collapse toggles show a pill and a brighter chevron on hover. */
+.collapse-btn { margin-left: -6px; padding: 3px 8px 3px 6px; border-radius: 6px; }
+.collapse-btn:hover { background: var(--surface-2); color: var(--text); }
+.collapse-btn:active { background: var(--border); }
+.collapse-btn:hover .chev { border-color: var(--text); }
+.p-toggle { margin-left: 0; padding: 0; height: 26px; width: 18px; border-radius: 4px; }
+
+/* Small icon buttons: rows' move, copy and delete, and remove player. */
+.tools button:hover, .roster-row .p-del:hover { background: var(--surface-2); border-color: var(--border); }
+
+/* Line rows look clickable. */
+.line.compact { transition: border-color 0.12s, background 0.12s; }
+.line.compact:hover { background: #101012; }
+.sum { cursor: pointer; }
+
+/* Summaries for Style and Color tags. */
+.settings summary, .help summary { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 6px; margin-left: -6px; border-radius: 6px; list-style: none; }
+.settings summary::-webkit-details-marker, .help summary::-webkit-details-marker { display: none; }
+.settings summary::before, .help summary::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.12s;
+}
+.settings[open] summary::before, .help[open] summary::before { transform: rotate(45deg) translate(-1px, -1px); }
+.settings summary:hover, .help summary:hover { background: var(--surface-2); color: var(--text); }
+
+/* Color swatches and the timestamp switch. */
+input[type="color"]:hover { box-shadow: 0 0 0 2px var(--border-hover); }
+.colors label { cursor: pointer; }
+.colors label:hover { color: var(--text); }
+.toggle { padding: 3px 6px; border-radius: 6px; }
+.toggle:hover { background: var(--surface-2); }
+
+/* Text links. */
+.font-row a { text-underline-offset: 2px; }
+.font-row a:hover { color: #fff; }
+
+/* The preview can be clicked to edit a line. */
+#preview:not([title=""]):hover { outline: 1px dashed var(--border-hover); outline-offset: 4px; }

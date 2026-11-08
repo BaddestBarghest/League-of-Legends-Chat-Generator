@@ -35,9 +35,11 @@ export function mountCollapsiblePanels(): void {
     const button = el("button", { type: "button", className: "collapse-btn" }, [el("span", { className: "chev", "aria-hidden": "true" }), heading.textContent ?? ""]);
     heading.replaceChildren(button);
 
+    const name = heading.textContent ?? "";
     const apply = (collapsed: boolean) => {
       panel.classList.toggle("collapsed", collapsed);
       button.setAttribute("aria-expanded", String(!collapsed));
+      button.title = `${collapsed ? "Expand" : "Collapse"} ${name}`;
     };
     apply(isCollapsed(id, false));
     button.addEventListener("click", () => {

@@ -97,6 +97,8 @@ function playerRow(p: Player, render: () => void, withStats: boolean): HTMLEleme
   const apply = (collapsed: boolean) => {
     entry.classList.toggle("collapsed", collapsed);
     toggle.setAttribute("aria-expanded", String(!collapsed));
+    toggle.title = collapsed ? "Show stats" : "Hide stats";
+    toggle.setAttribute("aria-label", toggle.title);
   };
   apply(isCollapsed(id, false));
   toggle.addEventListener("click", () => {
@@ -123,7 +125,9 @@ export function setAllPlayersCollapsed(collapsed: boolean): void {
   for (const p of state.players) setCollapsed(`player:${p.id}`, collapsed);
   for (const entry of document.querySelectorAll<HTMLElement>("#sb-roster .roster-entry")) {
     entry.classList.toggle("collapsed", collapsed);
-    entry.querySelector(".p-toggle")?.setAttribute("aria-expanded", String(!collapsed));
+    const toggle = entry.querySelector<HTMLButtonElement>(".p-toggle");
+    toggle?.setAttribute("aria-expanded", String(!collapsed));
+    if (toggle) toggle.title = collapsed ? "Show stats" : "Hide stats";
   }
 }
 
