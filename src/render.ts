@@ -38,13 +38,12 @@ export function lineSegments(line: ChatLine, s: Settings): Segment[] {
 
   if (line.team !== "system") {
     const nameColor = line.team === "ally" ? p.ally : p.enemy;
-    let who = "";
-    if (line.channel === "team") who += "[Team] ";
-    else if (line.channel === "all") who += "[All] ";
-    who += line.name;
-    if (line.champion.trim()) who += ` (${line.champion.trim()})`;
-    if (line.kind === "chat") who += ":";
-    segs.push({ text: who + " ", color: nameColor });
+    // Only join the parts that are filled in, so a blank name doesn't leave a double space.
+    const tag = line.channel === "team" ? "[Team]" : line.channel === "all" ? "[All]" : "";
+    const champ = line.champion.trim();
+    let who = [tag, line.name.trim(), champ && `(${champ})`].filter(Boolean).join(" ");
+    if (who && line.kind === "chat") who += ":";
+    if (who) segs.push({ text: who + " ", color: nameColor });
   }
 
   segs.push(...parseMarkup(line.body, p, p.white));
