@@ -24,7 +24,6 @@ export const newId = () => `l${Date.now().toString(36)}${(uid++).toString(36)}`;
 
 export function makeLine(partial: Partial<ChatLine> = {}): ChatLine {
   return {
-    id: newId(),
     time: "00:00",
     team: "ally",
     allChat: false,
@@ -33,6 +32,7 @@ export function makeLine(partial: Partial<ChatLine> = {}): ChatLine {
     kind: "chat",
     body: "",
     ...partial,
+    id: partial.id ?? newId(),
   };
 }
 
