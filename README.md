@@ -42,9 +42,27 @@ It downloads League's English string table from CommunityDragon (about 30 MB, ca
 
 Pushing to `main` builds the site and deploys it with GitHub Actions. In the repo settings, go to Pages and set the source to **GitHub Actions** once.
 
-## About the font
+## Game fonts
 
-The in-game chat uses Gill Sans. It isn't free to share, so the site uses the copy that comes with macOS, or with Microsoft Office on Windows ("Gill Sans MT"), when it's installed. Without it, the site falls back to Metrophobic, a close free match. Convergence, Quattrocento Sans and Imprima are also bundled as options. If you own the real font, use "Load my own font" in the Style panel.
+League uses two fonts that this site can't share, because Riot licenses them from type foundries:
+
+| Font | Used for | File |
+| --- | --- | --- |
+| Gill Sans MT Pro Medium | Chat | [gillsansmtpro-medium.otf](https://raw.communitydragon.org/latest/game/assets/ux/fonts/gillsansmtpro-medium.otf) |
+| Beaufort for LOL Bold | Scoreboard | [beaufortforlol-bold.otf](https://raw.communitydragon.org/latest/game/assets/ux/fonts/beaufortforlol-bold.otf) |
+
+Without them the site uses close free stand-ins: Metrophobic for chat and Spectral for the scoreboard. For an exact match:
+
+1. Download both files from the links above. They come from [CommunityDragon](https://raw.communitydragon.org/latest/game/assets/ux/fonts/), which hosts League's game files.
+2. Open the site, click **Fonts** in the top bar, then **Load font files**, and pick both files.
+
+The fonts are saved in your browser, so you only do this once per browser. They're never uploaded. The Fonts window shows which fonts are active, and a dot on the Fonts button means one is missing.
+
+If Gill Sans is already installed (it comes with macOS, and with Microsoft Office on Windows as "Gill Sans MT"), chat uses it automatically, though Gill Sans MT Pro Medium is a closer match.
+
+### Why the fonts aren't on the site
+
+Putting the font files on GitHub Pages, whether committed or downloaded during the build, would mean redistributing them from a public URL. That's something the licenses don't allow, and it could get the repo taken down. Loading them in your own browser keeps them private to you.
 
 ## Legal
 
