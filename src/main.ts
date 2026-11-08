@@ -9,7 +9,9 @@ import { mountExporters } from "./exporters";
 import { mountFontsGuide } from "./fontsGuide";
 import { mountComposer } from "./composer";
 import { mountPreview } from "./preview";
-import { mountRoster } from "./roster";
+import { mountRoster, setAllPlayersCollapsed } from "./roster";
+import { mountCollapsiblePanels } from "./collapse";
+import { $ } from "./dom";
 import { mountProjectFiles, restoreAutosave } from "./project";
 import { mountStyleControls } from "./styleControls";
 
@@ -28,3 +30,6 @@ mountPreview();
 mountExporters();
 mountProjectFiles();
 mountFontsGuide();
+mountCollapsiblePanels();
+$<HTMLButtonElement>("#sb-expand").addEventListener("click", () => setAllPlayersCollapsed(false));
+$<HTMLButtonElement>("#sb-collapse").addEventListener("click", () => setAllPlayersCollapsed(true));

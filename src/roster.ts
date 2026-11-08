@@ -3,6 +3,7 @@ import { $, el } from "./dom";
 import { getItems, getSpells, iconUrl } from "./gameData";
 import { championPicker, namePicker } from "./namePicker";
 import { changed, newId, onChange, state, statsOf } from "./state";
+import { isCollapsed, setCollapsed } from "./collapse";
 
 // A list of both teams' players. The Chat tab shows names and champions,
 // the Scoreboard tab shows the same players with their stats underneath.
@@ -81,9 +82,49 @@ function playerRow(p: Player, render: () => void, withStats: boolean): HTMLEleme
     render();
   });
 
-  const row = el("div", { className: "roster-row", "data-id": p.id }, [portrait, name, championPicker(champ), remove]);
-  if (!withStats) return row;
-  return el("div", { className: "roster-entry" }, [row, statsPanel(p)]);
+  if (!withStats) return el("div", { className: "roster-row", "data-id": p.id }, [portrait, name, championPicker(champ), remove]);
+
+  // On the scoreboard each player folds down to one summary line.
+  const id = `player:${p.id}`;
+  const toggle = el("button", { type: "button", className: "collapse-btn p-toggle", "aria-label": "Show stats" }, [
+    el("span", { className: "chev", "aria-hidden": "true" }),
+  ]);
+  const summary = el("p", { className: "stats-summary" });
+  const showSummary = () => (summary.textContent = statsSummary(p));
+  showSummary();
+  const row = el("div", { className: "roster-row with-toggle", "data-id": p.id }, [toggle, portrait, name, championPicker(champ), remove]);
+  const entry = el("div", { className: "roster-entry" }, [row, summary, statsPanel(p, showSummary)]);
+  const apply = (collapsed: boolean) => {
+    entry.classList.toggle("collapsed", collapsed);
+    toggle.setAttribute("aria-expanded", String(!collapsed));
+  };
+  apply(isCollapsed(id, true));
+  toggle.addEventListener("click", () => {
+    const collapsed = !entry.classList.contains("collapsed");
+    setCollapsed(id, collapsed);
+    apply(collapsed);
+  });
+  return entry;
+}
+
+// One line describing a player's scoreboard stats, for the folded view.
+function statsSummary(p: Player): string {
+  const s = statsOf(p);
+  const parts = [`Lv ${s.level}`, `${s.kills}/${s.deaths}/${s.assists}`, `${s.cs} CS`];
+  const items = s.items.slice(0, 6).filter((i) => i.trim()).length;
+  parts.push(`${items} item${items === 1 ? "" : "s"}`);
+  if (s.respawn > 0) parts.push(`dead ${s.respawn}s`);
+  if (s.bounty > 0) parts.push(`${s.bounty}G bounty`);
+  return parts.join(" · ");
+}
+
+// Opens or folds every player on the scoreboard tab at once.
+export function setAllPlayersCollapsed(collapsed: boolean): void {
+  for (const p of state.players) setCollapsed(`player:${p.id}`, collapsed);
+  for (const entry of document.querySelectorAll<HTMLElement>("#sb-roster .roster-entry")) {
+    entry.classList.toggle("collapsed", collapsed);
+    entry.querySelector(".p-toggle")?.setAttribute("aria-expanded", String(!collapsed));
+  }
 }
 
 // Brings name and champion fields up to date without rebuilding the list.
@@ -98,9 +139,12 @@ function refreshNames(panel: HTMLElement): void {
 }
 
 // Level, score, spells, runes and items, as the Tab scoreboard shows them.
-function statsPanel(p: Player): HTMLElement {
+function statsPanel(p: Player, onEdit: () => void): HTMLElement {
   const s = statsOf(p);
-  const save = () => changed();
+  const save = () => {
+    onEdit();
+    changed();
+  };
 
   const num = (label: string, key: "level" | "kills" | "deaths" | "assists" | "cs" | "respawn" | "bounty", max: number) => {
     const input = el("input", { type: "number", min: "0", max: String(max), value: String(s[key]), "aria-label": label });
