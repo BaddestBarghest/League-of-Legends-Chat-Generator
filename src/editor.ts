@@ -48,7 +48,8 @@ function lineCard(l: ChatLine, index: number): HTMLLIElement {
     return input;
   };
 
-  const time = text("f-time", l.time, "00:00", "Timestamp", "time");
+  const time = text("f-time", l.time, "none", "Timestamp", "time");
+  time.title = "Leave blank to hide the timestamp on this line";
   const name = text("f-name", l.name, "Name", "Player name", "name");
   const champ = text("f-champ", l.champion, "Champion", "Champion", "champion");
   const body = text("f-body", l.body, "Message, e.g. purchased <gold>Infinity Edge</gold>", "Message", "body");
