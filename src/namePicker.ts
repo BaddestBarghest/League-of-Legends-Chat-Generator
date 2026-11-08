@@ -8,8 +8,10 @@ let uid = 0;
 export interface PickerOptions {
   // Clicking an empty field lists everything, so you can browse.
   showAllWhenEmpty?: boolean;
-  // Shows each name's icon in the list and the chosen one in the field.
+  // Shows each name's icon in the list, and the chosen one in the field
+  // unless fieldIcon is false.
   icons?: IconKind;
+  fieldIcon?: boolean;
   onFocus?: () => Promise<void>;
 }
 
@@ -21,9 +23,13 @@ export function namePicker(input: HTMLInputElement, getNames: () => string[], op
   const listId = `name-list-${uid++}`;
   const list = el("ul", { className: "cb-list", id: listId, role: "listbox", hidden: true });
   const chosen = el("img", { className: "cb-icon", alt: "", hidden: true });
-  chosen.addEventListener("error", () => (chosen.hidden = true));
+  chosen.addEventListener("error", () => {
+    chosen.hidden = true;
+    chosen.parentElement?.classList.remove("has-icon");
+  });
+  const inField = Boolean(opts.icons) && opts.fieldIcon !== false;
   const wrap = el("span", { className: `cb${opts.icons ? " with-icon" : ""} ${input.className}` }, [
-    ...(opts.icons ? [chosen] : []),
+    ...(inField ? [chosen] : []),
     input,
     list,
   ]);
@@ -36,10 +42,12 @@ export function namePicker(input: HTMLInputElement, getNames: () => string[], op
 
   // The icon for the current value sits inside the field.
   const showChosen = () => {
-    if (!opts.icons) return;
-    const url = input.value.trim() ? iconUrl(opts.icons, input.value) : undefined;
+    if (!inField) return;
+    const url = input.value.trim() ? iconUrl(opts.icons!, input.value) : undefined;
     chosen.hidden = !url;
     if (url && chosen.src !== url) chosen.src = url;
+    // Only make room for the icon when there is one.
+    wrap.classList.toggle("has-icon", Boolean(url));
   };
   showChosen();
 
@@ -143,7 +151,8 @@ export function namePicker(input: HTMLInputElement, getNames: () => string[], op
   return wrap;
 }
 
-export const championPicker = (input: HTMLInputElement) => namePicker(input, getChampions, { icons: "champion" });
+// Players already show a portrait beside the field, so no icon inside it.
+export const championPicker = (input: HTMLInputElement) => namePicker(input, getChampions, { icons: "champion", fieldIcon: false });
 export const itemPicker = (input: HTMLInputElement) => namePicker(input, getItems, { icons: "item", showAllWhenEmpty: true });
 export const trinketPicker = (input: HTMLInputElement) => namePicker(input, getTrinkets, { icons: "item", showAllWhenEmpty: true });
 export const spellPicker = (input: HTMLInputElement) => namePicker(input, getSpells, { icons: "spell", showAllWhenEmpty: true });
