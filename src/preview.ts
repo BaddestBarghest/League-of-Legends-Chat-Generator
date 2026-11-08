@@ -60,6 +60,8 @@ export function mountPreview(): void {
       // only a convenience
     }
     for (const id of ["#btn-frames", "#btn-copy", "#btn-txt"]) $<HTMLButtonElement>(id).hidden = view === "scoreboard";
+    // Style only changes the chat, so it's hidden on the scoreboard.
+    $<HTMLElement>(".settings").hidden = view === "scoreboard";
     $<HTMLElement>("#s-time").closest("label")!.hidden = view === "scoreboard";
     canvas.title = view === "chat" ? "Click a line to edit it" : "";
     schedule();
