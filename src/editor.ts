@@ -1,6 +1,6 @@
 import type { Channel, ChatLine, Team } from "./types";
 import { championPicker } from "./namePicker";
-import { $, el } from "./dom";
+import { $, el, toast } from "./dom";
 import { changed, newId, onChange, playerOf, state } from "./state";
 import { findTimeIssues, fixTimes } from "./timeCheck";
 import { lineSegments } from "./render";
@@ -34,6 +34,15 @@ export function mountEditor(): void {
     if (openId && !state.lines.some((l) => l.id === openId)) openId = null;
     state.lines.forEach((l, i) => list.append(l.id === openId ? lineCard(l, i) : compactRow(l, i)));
   };
+
+  // Clearing is one step, so a single undo brings every line back.
+  $<HTMLButtonElement>("#btn-clear-lines").addEventListener("click", () => {
+    if (!state.lines.length) return;
+    const count = state.lines.length;
+    state.lines = [];
+    changed(true);
+    toast(`Cleared ${count} line${count === 1 ? "" : "s"}. Undo (Ctrl+Z) brings them back.`);
+  });
 
   $<HTMLButtonElement>("#btn-fix-times").addEventListener("click", () => {
     fixTimes(state.lines);
