@@ -173,3 +173,7 @@ input[type="checkbox"] { accent-color: var(--text); }
 .help summary:hover { color: var(--text); }
 .help code { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; font-size: 12px; }
 .help ul { padding-left: 18px; margin: 6px 0 0; }
+
+/* export */
+.export { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 14px; }
+.toast { min-height: 1.4em; font-size: 12px; color: var(--muted); margin: 8px 2px 0; }

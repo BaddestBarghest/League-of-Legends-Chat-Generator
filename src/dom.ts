@@ -14,3 +14,27 @@ export function el<K extends keyof HTMLElementTagNameMap>(
   node.append(...children);
   return node;
 }
+
+export function download(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = el("a", { href: url, download: filename });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+let toastTimer = 0;
+export function toast(msg: string): void {
+  const node = $<HTMLParagraphElement>("#toast");
+  node.textContent = msg;
+  clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => (node.textContent = ""), 3500);
+}
+
+// Timestamp for file names, like 20261107-2315.
+export function stamp(): string {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
+}
