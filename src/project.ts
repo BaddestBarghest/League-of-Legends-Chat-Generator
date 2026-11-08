@@ -1,12 +1,21 @@
-import type { ChatLine, Project } from "./types";
+import type { ChatLine, Palette, Project } from "./types";
 import { $, download, stamp, toast } from "./dom";
-import { changed, DEFAULT_SETTINGS, makeLine, onChange, state } from "./state";
+import { changed, DEFAULT_SETTINGS, makeLine, OLD_DEFAULT_PALETTE, onChange, state } from "./state";
 import { syncStyleControls } from "./styleControls";
 
 const STORAGE_KEY = "chat-log-maker:v1";
 
 function snapshot(): Project {
   return { version: 1, settings: state.settings, lines: state.lines };
+}
+
+// Keeps colors the user picked, but swaps untouched old defaults for the new ones.
+function upgradePalette(saved: Partial<Palette>): Palette {
+  const palette = { ...DEFAULT_SETTINGS.palette };
+  for (const [key, value] of Object.entries(saved) as [keyof Palette, string][]) {
+    if (key in palette && value !== OLD_DEFAULT_PALETTE[key]) palette[key] = value;
+  }
+  return palette;
 }
 
 // Fills in anything missing so older or hand-edited files still load.
@@ -17,7 +26,7 @@ function apply(data: unknown): void {
   state.settings = {
     ...DEFAULT_SETTINGS,
     ...(p.settings ?? {}),
-    palette: { ...DEFAULT_SETTINGS.palette, ...(p.settings?.palette ?? {}) },
+    palette: upgradePalette(p.settings?.palette ?? {}),
   };
   // Older saves had an allChat checkbox instead of a channel.
   state.lines = p.lines.map((l) => {

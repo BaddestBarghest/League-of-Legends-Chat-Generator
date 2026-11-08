@@ -10,13 +10,28 @@ export const DEFAULT_SETTINGS: Settings = {
   fixedWidth: 0,
   scale: 2,
   showTime: true,
+  // Measured from in-game screenshots.
   palette: {
-    ally: "#6ab4e4",
-    enemy: "#e5525a",
-    gold: "#e8c46a",
-    white: "#e8eef0",
-    time: "#dde2e6",
+    ally: "#42b0e8",
+    enemy: "#ee3434",
+    gold: "#eb9a0a",
+    white: "#e4e2e6",
+    time: "#dcdcdc",
+    ping: "#ccb0ae",
+    info: "#b0e4a0",
+    green: "#10e010",
+    cyan: "#50aec4",
   },
+};
+
+// The first palette, before it was matched to the game. Saves that still
+// use these get the new colors.
+export const OLD_DEFAULT_PALETTE: Record<string, string> = {
+  ally: "#6ab4e4",
+  enemy: "#e5525a",
+  gold: "#e8c46a",
+  white: "#e8eef0",
+  time: "#dde2e6",
 };
 
 let uid = 0;

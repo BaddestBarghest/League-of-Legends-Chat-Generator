@@ -13,6 +13,10 @@ const NAMED: Record<string, keyof Palette> = {
   blue: "ally",
   ally: "ally",
   white: "white",
+  ping: "ping",
+  info: "info",
+  green: "green",
+  cyan: "cyan",
 };
 
 const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;

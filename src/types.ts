@@ -22,6 +22,10 @@ export interface Palette {
   gold: string;
   white: string;
   time: string;
+  ping: string; // smart ping text, a dim warm gray
+  info: string; // statuses and stat names, pale green
+  green: string;
+  cyan: string;
 }
 
 export interface Settings {
