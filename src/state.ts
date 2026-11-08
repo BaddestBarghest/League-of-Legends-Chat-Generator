@@ -83,6 +83,10 @@ export function playersFromLines(lines: ChatLine[]): Player[] {
 const sampleLines = SAMPLE.map(makeLine);
 
 // Everything the app edits lives here. Call changed() after any edit.
+// The picture the preview and exports show. The Players tab has none of its
+// own, so it shows the scoreboard, where every player's stats appear.
+export const picture = () => (state.view === "players" ? "scoreboard" : state.view);
+
 export function defaultBanner(): Banner {
   return { result: "victory", text: "", background: "plaque", size: 1, spacing: 0, imageSize: 1 };
 }
@@ -118,7 +122,7 @@ export const state = {
   popups: defaultPopups(),
   popupSpeed: 1,
   // Which picture the preview and PNG export show.
-  view: "chat" as "chat" | "scoreboard" | "banner" | "popups",
+  view: "chat" as "players" | "chat" | "scoreboard" | "banner" | "popups",
 };
 
 export function defaultStats(): PlayerStats {

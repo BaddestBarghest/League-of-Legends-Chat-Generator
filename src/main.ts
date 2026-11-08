@@ -24,8 +24,7 @@ void restoreFonts().then(() => changed(true));
 void refreshChampions();
 // Redraw once names and icons arrive from Riot.
 void loadGameData().then(() => changed(true));
-mountRoster("#roster", false);
-mountRoster("#sb-roster", true);
+mountRoster("#roster", true);
 mountEditor();
 mountComposer();
 mountBannerPanel();
@@ -37,5 +36,5 @@ mountProjectFiles();
 mountFontsGuide();
 mountHistory();
 mountCollapsiblePanels();
-$<HTMLButtonElement>("#sb-expand").addEventListener("click", () => setAllPlayersCollapsed(false));
-$<HTMLButtonElement>("#sb-collapse").addEventListener("click", () => setAllPlayersCollapsed(true));
+$<HTMLButtonElement>("#pl-expand").addEventListener("click", () => setAllPlayersCollapsed(false));
+$<HTMLButtonElement>("#pl-collapse").addEventListener("click", () => setAllPlayersCollapsed(true));

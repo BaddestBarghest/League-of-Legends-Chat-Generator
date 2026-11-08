@@ -5,9 +5,8 @@ import { championPicker, itemPicker, spellPicker, trinketPicker } from "./namePi
 import { changed, newId, onChange, state, statsOf } from "./state";
 import { isCollapsed, setCollapsed } from "./collapse";
 
-// A list of both teams' players. The Chat tab shows names and champions,
-// the Scoreboard tab shows the same players with their stats underneath.
-// Both edit the same players.
+// Both teams' players with their champions, items, spells and stats. It lives
+// on the Players tab, and every other tab reads from it.
 export function mountRoster(selector: string, withStats: boolean): void {
   const panel = $<HTMLElement>(selector);
 
@@ -123,7 +122,7 @@ function statsSummary(p: Player): string {
 // Opens or folds every player on the scoreboard tab at once.
 export function setAllPlayersCollapsed(collapsed: boolean): void {
   for (const p of state.players) setCollapsed(`player:${p.id}`, collapsed);
-  for (const entry of document.querySelectorAll<HTMLElement>("#sb-roster .roster-entry")) {
+  for (const entry of document.querySelectorAll<HTMLElement>("#roster .roster-entry")) {
     entry.classList.toggle("collapsed", collapsed);
     const toggle = entry.querySelector<HTMLButtonElement>(".p-toggle");
     toggle?.setAttribute("aria-expanded", String(!collapsed));

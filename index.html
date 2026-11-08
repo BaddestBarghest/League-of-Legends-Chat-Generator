@@ -17,6 +17,7 @@
     <header class="top">
       <h1>Summoner Studio</h1>
       <nav id="tabs" class="seg tabs" role="tablist" aria-label="Sections">
+        <button type="button" role="tab" data-tab="players" aria-selected="false">Players</button>
         <button type="button" role="tab" data-tab="chat" class="on" aria-selected="true">Chat</button>
         <button type="button" role="tab" data-tab="scoreboard" aria-selected="false">Scoreboard</button>
         <button type="button" role="tab" data-tab="banner" aria-selected="false">Victory</button>
@@ -34,13 +35,20 @@
     </header>
 
     <main class="layout">
+      <div class="column" data-tab="players" hidden>
+        <section class="panel" aria-label="Players">
+          <div class="panel-head">
+            <h2>Players</h2>
+            <div class="add-row">
+              <button id="pl-expand" type="button" class="small">Expand all</button>
+              <button id="pl-collapse" type="button" class="small">Collapse all</button>
+            </div>
+          </div>
+          <p class="hint">Champions, items, spells and stats for everyone. Chat, Scoreboard and the other tabs all use these players.</p>
+          <div id="roster" class="roster sb-roster"></div>
+        </section>
+      </div>
       <div class="column" data-tab="chat">
-      <section class="panel" aria-label="Players" data-collapse="players">
-        <div class="panel-head">
-          <h2>Players</h2>
-        </div>
-        <div id="roster" class="roster"></div>
-      </section>
       <section class="panel editor" aria-label="Chat lines" data-collapse="lines">
         <div class="panel-head">
           <h2>Lines</h2>
@@ -100,17 +108,12 @@
         <section class="panel" aria-label="Scoreboard">
           <div class="panel-head">
             <h2>Scoreboard</h2>
-            <div class="add-row">
-              <button id="sb-expand" type="button" class="small">Expand all</button>
-              <button id="sb-collapse" type="button" class="small">Collapse all</button>
-            </div>
           </div>
           <div class="sb-opts">
             <label>Ally turrets taken <input id="sb-ally-turrets" type="number" min="0" max="11" /></label>
             <label>Enemy turrets taken <input id="sb-enemy-turrets" type="number" min="0" max="11" /></label>
-            <p class="hint">Team kills add up from each player's K. Players are shared with the Chat tab.</p>
+            <p class="hint">Team kills add up from each player's K. Champions, items and stats are on the Players tab.</p>
           </div>
-          <div id="sb-roster" class="roster sb-roster"></div>
         </section>
       </div>
       <div class="column" data-tab="banner" hidden>

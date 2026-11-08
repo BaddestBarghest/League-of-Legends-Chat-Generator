@@ -5,12 +5,12 @@ import { loadScoreboardArt, renderScoreboard } from "./scoreboard";
 import { bannerWord, loadBannerArt, renderBanner } from "./banner";
 import { clipLength, loadPopupArt, popupFrame, renderPopups } from "./popups";
 import { clipNow, playback } from "./popupPanel";
-import { state } from "./state";
+import { picture, state } from "./state";
 
 async function exportPng(): Promise<void> {
   await ensureFont(state.settings);
   const c = document.createElement("canvas");
-  if (state.view === "scoreboard") {
+  if (picture() === "scoreboard") {
     const art = await loadScoreboardArt(state.players);
     renderScoreboard(c, state.players, state.settings, state.settings.scale, art, state.scoreboard);
     download(await canvasToBlob(c), `scoreboard-${stamp()}.png`);

@@ -3,7 +3,7 @@ import { FONT_SOURCE, fontAvailable, GAME_FONTS, removeFont, savedFonts } from "
 import { GILL, gillInUse } from "./render";
 import { SCOREBOARD_FONT } from "./scoreboard";
 import { POPUP_FONT } from "./popups";
-import { changed, onChange, state } from "./state";
+import { changed, onChange, picture, state } from "./state";
 import { loadFontFiles, useLoadedFonts } from "./styleControls";
 
 interface Status {
@@ -74,7 +74,7 @@ export function mountFontsGuide(): void {
 
   // A nudge under the preview when the open tab isn't using the game font.
   const updateHint = () => {
-    const view = state.view;
+    const view = picture();
     let st: Status = { ok: true, text: "" };
     let text = "";
     if (view === "popups") {

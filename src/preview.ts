@@ -5,7 +5,7 @@ import { loadScoreboardArt, renderScoreboard, scoreboardSize } from "./scoreboar
 import { bannerSize, loadBannerArt, renderBanner } from "./banner";
 import { loadPopupArt, popupsSize, renderPopups } from "./popups";
 import { clipNow, onPlayback } from "./popupPanel";
-import { changed, onChange, state } from "./state";
+import { changed, onChange, picture, state } from "./state";
 
 export function mountPreview(): void {
   const canvas = $<HTMLCanvasElement>("#preview");
@@ -21,7 +21,7 @@ export function mountPreview(): void {
     // Draw at screen density so the preview stays sharp.
     const dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
     let size;
-    if (state.view === "scoreboard") {
+    if (picture() === "scoreboard") {
       const art = await loadScoreboardArt(state.players);
       // A newer draw started while icons loaded, let that one win.
       if (ticket !== drawing) return;
@@ -58,8 +58,8 @@ export function mountPreview(): void {
     }),
   );
 
-  // The Chat, Scoreboard, Victory and Popups tabs. The preview shows whichever tab
-  // is open, and chat-only controls hide on the others.
+  // The tabs. The preview shows the open tab's picture, and chat-only
+  // controls hide on the others.
   const setView = (view: typeof state.view) => {
     state.view = view;
     document.querySelectorAll<HTMLButtonElement>("#tabs button").forEach((x) => {
@@ -76,8 +76,8 @@ export function mountPreview(): void {
     for (const id of ["#btn-copy", "#btn-txt"]) $<HTMLButtonElement>(id).hidden = !chat;
     $<HTMLButtonElement>("#btn-frames").hidden = !chat && view !== "popups";
     $<HTMLButtonElement>("#btn-webm").hidden = view !== "popups";
-    // The scoreboard editor has many fields, so it gets the wider column.
-    $<HTMLElement>(".layout").classList.toggle("sb", view === "scoreboard");
+    // The players editor has many fields, so it gets the wider column.
+    $<HTMLElement>(".layout").classList.toggle("sb", view === "players");
     // Style and timestamps only change the chat.
     $<HTMLElement>(".settings").hidden = !chat;
     $<HTMLElement>("#s-time").closest("label")!.hidden = !chat;
@@ -122,5 +122,6 @@ export function mountPreview(): void {
     // start on chat
   }
   onPlayback(schedule);
-  setView(last === "scoreboard" || last === "banner" || last === "popups" ? last : "chat");
+  const tabs = ["players", "chat", "scoreboard", "banner", "popups"];
+  setView((tabs.includes(last ?? "") ? last : "chat") as typeof state.view);
 }
