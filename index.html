@@ -59,6 +59,42 @@
           <button id="btn-txt" type="button">Download .txt</button>
         </div>
         <p id="toast" class="toast" role="status" aria-live="polite"></p>
+
+        <details class="settings">
+          <summary>Style</summary>
+          <div class="grid">
+            <label>Font
+              <select id="s-font">
+                <option value="Marcellus">Marcellus</option>
+                <option value="Cormorant Garamond">Cormorant Garamond</option>
+                <option value="Spectral">Spectral</option>
+              </select>
+            </label>
+            <label class="file-btn">Load my own font<input id="file-font" type="file" accept=".ttf,.otf,.woff,.woff2" hidden /></label>
+            <label>Size <output id="o-size"></output><input id="s-size" type="range" min="12" max="72" step="1" /></label>
+            <label>Line spacing <output id="o-lh"></output><input id="s-lh" type="range" min="1" max="2" step="0.05" /></label>
+            <label>Outline <output id="o-outline"></output><input id="s-outline" type="range" min="0" max="0.15" step="0.01" /></label>
+            <label>Shadow <output id="o-shadow"></output><input id="s-shadow" type="range" min="0" max="10" step="0.5" /></label>
+            <label>Padding <output id="o-pad"></output><input id="s-pad" type="range" min="0" max="40" step="1" /></label>
+            <label>Width, 0 to fit <input id="s-width" type="number" min="0" max="4000" step="10" /></label>
+            <label>Export scale
+              <select id="s-scale">
+                <option value="1">1×</option>
+                <option value="2">2×</option>
+                <option value="3">3×</option>
+              </select>
+            </label>
+            <label class="check"><input id="s-time" type="checkbox" /> Timestamps</label>
+          </div>
+          <div class="colors">
+            <label><input id="c-ally" type="color" /> Ally</label>
+            <label><input id="c-enemy" type="color" /> Enemy</label>
+            <label><input id="c-gold" type="color" /> Gold</label>
+            <label><input id="c-white" type="color" /> Message</label>
+            <label><input id="c-time" type="color" /> Time</label>
+            <button id="btn-reset-style" class="small" type="button">Reset</button>
+          </div>
+        </details>
       </section>
     </main>
 
