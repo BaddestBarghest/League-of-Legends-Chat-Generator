@@ -1,8 +1,29 @@
 import type { ChatLine, Settings } from "./types";
 import { parseMarkup, stripMarkup, type Segment } from "./markup";
 
+// The game chat uses Gill Sans. It can't be bundled, so we use the copy that
+// ships with macOS or Office when it's there, and Metrophobic when it isn't.
+export const GILL = "Gill Sans";
+const GILL_NAMES = ['"Gill Sans"', "GillSans", '"Gill Sans MT"'];
+const FALLBACK = 'Metrophobic, "Trebuchet MS", sans-serif';
+
 export function fontString(s: Settings, scale = 1): string {
-  return `${s.fontSize * scale}px ${quoteFamily(s.fontFamily)}, "Trebuchet MS", sans-serif`;
+  const family = s.fontFamily === GILL ? GILL_NAMES.join(", ") : quoteFamily(s.fontFamily);
+  return `${s.fontSize * scale}px ${family}, ${FALLBACK}`;
+}
+
+// A font that isn't installed renders at the fallback's width, so a width
+// change against two different fallbacks means it's really there.
+export function hasLocalGill(): boolean {
+  const ctx = document.createElement("canvas").getContext("2d")!;
+  const sample = "NesoDarling (Ezreal): 23:34 Jax";
+  const width = (font: string) => {
+    ctx.font = font;
+    return ctx.measureText(sample).width;
+  };
+  return GILL_NAMES.some((name) =>
+    ["monospace", "serif"].every((base) => width(`40px ${name}, ${base}`) !== width(`40px ${base}`)),
+  );
 }
 
 function quoteFamily(f: string): string {

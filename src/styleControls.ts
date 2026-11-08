@@ -1,4 +1,5 @@
 import { $, el, toast } from "./dom";
+import { GILL, hasLocalGill } from "./render";
 import { changed, DEFAULT_SETTINGS, state } from "./state";
 
 type NumKey = "fontSize" | "lineHeight" | "outline" | "shadow" | "padding";
@@ -24,10 +25,23 @@ export function syncStyleControls(): void {
     font.append(el("option", { value: s.fontFamily, textContent: `${s.fontFamily} (yours)` }));
   }
   font.value = s.fontFamily;
+  updateFontNote();
   $<HTMLInputElement>("#s-width").value = String(s.fixedWidth);
   $<HTMLSelectElement>("#s-scale").value = String(s.scale);
   $<HTMLInputElement>("#s-time").checked = s.showTime;
   for (const c of COLORS) $<HTMLInputElement>(`#c-${c}`).value = s.palette[c];
+}
+
+// Says which font is really being drawn when Gill Sans is picked.
+function updateFontNote(): void {
+  const note = $<HTMLParagraphElement>("#font-note");
+  if (state.settings.fontFamily !== GILL) {
+    note.textContent = "";
+  } else if (hasLocalGill()) {
+    note.textContent = "Gill Sans found on this device. Exports will match the game.";
+  } else {
+    note.textContent = "Gill Sans isn't installed here, so Metrophobic is used instead.";
+  }
 }
 
 export function mountStyleControls(): void {
@@ -49,7 +63,10 @@ export function mountStyleControls(): void {
       changed();
     });
   };
-  on<HTMLSelectElement>("#s-font", "change", (n) => (s().fontFamily = n.value));
+  on<HTMLSelectElement>("#s-font", "change", (n) => {
+    s().fontFamily = n.value;
+    updateFontNote();
+  });
   on<HTMLInputElement>("#s-width", "input", (n) => (s().fixedWidth = Math.max(0, Number(n.value) || 0)));
   on<HTMLSelectElement>("#s-scale", "change", (n) => (s().scale = Number(n.value)));
   on<HTMLInputElement>("#s-time", "change", (n) => (s().showTime = n.checked));

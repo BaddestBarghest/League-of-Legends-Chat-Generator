@@ -27,7 +27,7 @@ Pushing to `main` builds the site and deploys it with GitHub Actions. In the rep
 
 ## About the font
 
-The in-game chat font isn't free to share, so the site ships with Metrophobic as a close free match, plus Convergence, Quattrocento Sans and Imprima. The fonts are bundled with the site. If you own the real font, use "Load my own font" in the Style panel.
+The in-game chat uses Gill Sans. It isn't free to share, so the site uses the copy that comes with macOS, or with Microsoft Office on Windows ("Gill Sans MT"), when it's installed. Without it, the site falls back to Metrophobic, a close free match. Convergence, Quattrocento Sans and Imprima are also bundled as options. If you own the real font, use "Load my own font" in the Style panel.
 
 ## Legal
 
