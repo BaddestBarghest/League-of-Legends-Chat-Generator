@@ -22,7 +22,7 @@ export const GAME_FONTS = [
   {
     family: "Beaufort for LOL",
     file: "beaufortforlol-bold.otf",
-    use: "Scoreboard and Victory",
+    use: "Scoreboard and End banner",
     match: /beaufort/i,
   },
   {

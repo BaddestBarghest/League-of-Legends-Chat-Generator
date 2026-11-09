@@ -109,7 +109,9 @@ button.link:hover { background: none; color: #fff; }
   padding: 12px var(--gutter);
   border-bottom: 1px solid var(--border);
 }
-.tabs { margin-right: auto; }
+.tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-right: auto; }
+.tab-group { display: flex; align-items: center; gap: 8px; }
+.tab-group-label { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
 .top-actions { display: flex; gap: 8px; }
 
 /* The editor keeps a comfortable width and the preview takes the rest, so

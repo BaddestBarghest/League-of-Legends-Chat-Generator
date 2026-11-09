@@ -16,7 +16,7 @@ Make League style in-game chat logs, Tab scoreboards and Victory or Defeat scree
 - Tab scoreboard: switch the preview to Scoreboard to draw both teams with champion portraits, spells, items, level, CS, K/D/A, bounties and respawn timers. Set each player's stats with the Stats button in Players
 - Post-game: the client's end of game Scoreboard tab with splash art rows, augments, items, K/D/A, damage bars and gold. Sizes come from Riot's own stylesheet for the client
 - Kill feed: the rows in the top right of the game, with killer, victim, up to four assists and the kill, streak, shutdown, altar capture or revive icon. Any slot can be a player, any champion, a turret, dragon, Baron or other objective, or your own picture, and the icon can be your own too. Mark which one is you for the lime frame. Layout comes from the game's own kill callout files
-- Victory and Defeat: the end of game plaque from the game's own art, with any text you like. The lettering is drawn in Beaufort for LOL Bold with the gold or copper finish matched to Riot's word art
+- End banner: the Victory or Defeat plaque from the game's own art, with any text you like. The lettering is drawn in Beaufort for LOL Bold with the gold or copper finish matched to Riot's word art
 - Popups: the floating text over champions, like +21 gold, +62xp, LEVEL UP!, heals and damage numbers with crit icons. Each starts from the game's own look and motion, and the text, colors and icon can all be changed. Play them back, download any moment as a PNG, or export the whole clip as PNG frames or a transparent WebM video
 - Timestamps you can turn off, and a warning when a line's time goes back in time
 - Color tags in messages: `<gold>`, `<red>`, `<blue>`, `<ping>`, `<info>`, `<b>` for bold, or any hex like `<#ff66cc>text</>`
@@ -55,7 +55,7 @@ League uses a few fonts that this site can't share, because Riot licenses them f
 | Font | Used for | File |
 | --- | --- | --- |
 | Gill Sans MT Pro Medium | Chat | [gillsansmtpro-medium.otf](https://raw.communitydragon.org/latest/game/assets/ux/fonts/gillsansmtpro-medium.otf) |
-| Beaufort for LOL Bold | Scoreboard and Victory | [beaufortforlol-bold.otf](https://raw.communitydragon.org/latest/game/assets/ux/fonts/beaufortforlol-bold.otf) |
+| Beaufort for LOL Bold | Scoreboard and End banner | [beaufortforlol-bold.otf](https://raw.communitydragon.org/latest/game/assets/ux/fonts/beaufortforlol-bold.otf) |
 | Spiegel Bold | Popups | [spiegel-bold.otf](https://raw.communitydragon.org/latest/game/assets/ux/fonts/spiegel-bold.otf) |
 | Spiegel Regular | Post-game | [spiegel-regular.otf](https://raw.communitydragon.org/latest/game/assets/ux/fonts/spiegel-regular.otf) |
 

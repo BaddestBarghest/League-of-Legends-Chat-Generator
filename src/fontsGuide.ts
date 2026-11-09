@@ -92,7 +92,7 @@ export function mountFontsGuide(): void {
       st = popupStatus();
       text = "The popups are using Source Sans 3 in place of the game's font.";
     } else if (view !== "chat") {
-      // The scoreboard and the Victory screen both use Beaufort.
+      // The scoreboard and the end banner both use Beaufort.
       st = scoreboardStatus();
       text = `The ${view === "banner" ? "text" : "scoreboard"} is using Spectral in place of the game's font.`;
     } else if (state.settings.fontFamily === GILL) {

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Summoner Studio</title>
-    <meta name="description" content="Make League-style chat logs, scoreboards and Victory screens as transparent PNGs." />
+    <meta name="description" content="Make League-style chat logs, kill feeds, popups, scoreboards and end of game screens as transparent PNGs and videos." />
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,14 +16,28 @@
   <body>
     <header class="top">
       <h1>Summoner Studio</h1>
-      <nav id="tabs" class="seg tabs" role="tablist" aria-label="Sections">
-        <button type="button" role="tab" data-tab="players" aria-selected="false">Players</button>
-        <button type="button" role="tab" data-tab="chat" class="on" aria-selected="true">Chat</button>
-        <button type="button" role="tab" data-tab="scoreboard" aria-selected="false">Scoreboard</button>
-        <button type="button" role="tab" data-tab="postgame" aria-selected="false">Post-game</button>
-        <button type="button" role="tab" data-tab="killfeed" aria-selected="false">Kill feed</button>
-        <button type="button" role="tab" data-tab="banner" aria-selected="false">Victory</button>
-        <button type="button" role="tab" data-tab="popups" aria-selected="false">Popups</button>
+      <nav id="tabs" class="tabs" role="tablist" aria-label="Sections">
+        <div class="tab-group">
+          <div class="seg">
+            <button type="button" role="tab" data-tab="players" aria-selected="false">Players</button>
+          </div>
+        </div>
+        <div class="tab-group" role="group" aria-labelledby="tg-game">
+          <span id="tg-game" class="tab-group-label">In game</span>
+          <div class="seg">
+            <button type="button" role="tab" data-tab="chat" class="on" aria-selected="true">Chat</button>
+            <button type="button" role="tab" data-tab="killfeed" aria-selected="false">Kill feed</button>
+            <button type="button" role="tab" data-tab="popups" aria-selected="false">Popups</button>
+            <button type="button" role="tab" data-tab="scoreboard" aria-selected="false">Scoreboard</button>
+          </div>
+        </div>
+        <div class="tab-group" role="group" aria-labelledby="tg-end">
+          <span id="tg-end" class="tab-group-label">End of game</span>
+          <div class="seg">
+            <button type="button" role="tab" data-tab="banner" aria-selected="false">End banner</button>
+            <button type="button" role="tab" data-tab="postgame" aria-selected="false">Post-game</button>
+          </div>
+        </div>
       </nav>
       <div class="top-actions">
         <div class="undo-group">

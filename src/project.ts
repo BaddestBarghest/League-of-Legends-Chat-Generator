@@ -90,7 +90,7 @@ export function mountProjectFiles(): void {
     }
   });
 
-  // Saved files carry the Victory picture too, so they open on any device.
+  // Saved files carry the end banner picture too, so they open on any device.
   $<HTMLButtonElement>("#btn-save").addEventListener("click", async () => {
     const data = snapshot();
     const img = state.banner.background === "image" ? await bannerImageBlob() : null;
@@ -124,7 +124,7 @@ export function mountProjectFiles(): void {
       const data = JSON.parse(await file.text());
       apply(data);
       const pic = (data as Project).banner?.imageData;
-      if (pic) await setBannerImage(await dataUrlToBlob(pic)).catch(() => toast("The file's Victory picture couldn't be opened."));
+      if (pic) await setBannerImage(await dataUrlToBlob(pic)).catch(() => toast("The file's end banner picture couldn't be opened."));
       for (const [key, url] of Object.entries((data as Project).killfeedImages ?? {})) {
         await setImage(key, await dataUrlToBlob(url)).catch(() => {});
       }
