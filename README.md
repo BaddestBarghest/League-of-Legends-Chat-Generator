@@ -2,7 +2,7 @@
 
 Make League style in-game chat logs, Tab scoreboards and Victory or Defeat screens, and export them as transparent PNGs for videos, thumbnails and memes.
 
-**Try it here: [baddestbarghest.github.io/League-of-Legends-Chat-Generator](https://baddestbarghest.github.io/League-of-Legends-Chat-Generator/)**
+**Try it here: [baddestbarghest.github.io/League-of-Legends-Chat-Generator](https://baddestbarghest.github.io/Summoner-Studio/)**
 
 ## Features
 
