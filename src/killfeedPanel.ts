@@ -101,6 +101,13 @@ export function mountKillfeedPanel(): void {
     Object.assign(state.killfeed, { allyColor: d.allyColor, enemyColor: d.enemyColor });
     changed(true);
   });
+  const borders = [...document.querySelectorAll<HTMLButtonElement>("#kf-borders button")];
+  borders.forEach((b) =>
+    b.addEventListener("click", () => {
+      state.killfeed.borders = b.dataset.borders as typeof state.killfeed.borders;
+      changed(true);
+    }),
+  );
   $<HTMLButtonElement>("#kf-add").addEventListener("click", () => {
     const last = state.killfeed.entries[state.killfeed.entries.length - 1];
     state.killfeed.entries.push(makeKill(last ? { team: last.team } : {}));
@@ -201,6 +208,7 @@ export function mountKillfeedPanel(): void {
   const sync = () => {
     if (document.activeElement !== ally) ally.value = state.killfeed.allyColor;
     if (document.activeElement !== enemy) enemy.value = state.killfeed.enemyColor;
+    borders.forEach((b) => b.classList.toggle("on", b.dataset.borders === state.killfeed.borders));
   };
   onChange((structural) => {
     if (structural) render();

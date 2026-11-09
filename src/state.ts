@@ -149,6 +149,7 @@ export function defaultKillfeed(): Killfeed {
     // Fitted to in-game screenshots, with the strip art's own shading taken out.
     allyColor: "#569ee3",
     enemyColor: "#e43431",
+    borders: "team",
   };
 }
 

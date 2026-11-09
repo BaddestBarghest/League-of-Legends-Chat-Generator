@@ -127,6 +127,14 @@ export function killfeedSize(feed: Killfeed): { width: number; height: number } 
   return { width: RIGHT - left + PAD * 2, height: Math.max(1, feed.entries.length) * SLOT + PAD };
 }
 
+// The game's frames are near black. Dark tint keeps a quarter of the team color.
+function borderColor(style: Killfeed["borders"], team: string): string {
+  if (style === "team") return team;
+  if (style === "game") return FRAME;
+  const mix = (i: number) => Math.round(parseInt(team.slice(i, i + 2), 16) * 0.25 + parseInt(FRAME.slice(i, i + 2), 16) * 0.75);
+  return `#${[1, 3, 5].map((i) => mix(i).toString(16).padStart(2, "0")).join("")}`;
+}
+
 // Grey and white art tinted with a team color, keeping its own shading.
 const tints = new Map<string, HTMLCanvasElement>();
 function tinted(atlas: HTMLImageElement, uv: UV, color: string): HTMLCanvasElement {
@@ -167,7 +175,7 @@ export function renderKillfeed(canvas: HTMLCanvasElement, feed: Killfeed, player
     if (atlas) ctx.drawImage(tinted(atlas, L.background.uv, color), ...at(L.background.rect));
 
     const portrait = (p: Portrait, slot: string, rect: Rect, frame: Rect) => {
-      const frameColor = slot === e.you ? FRAME_YOU : FRAME;
+      const frameColor = slot === e.you ? FRAME_YOU : borderColor(feed.borders, color);
       const src = source(p, e.id, slot, players);
       if (!src) return;
       const im = art.images.get((src.url ?? src.key)!) ?? null;

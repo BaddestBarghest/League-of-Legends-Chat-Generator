@@ -142,6 +142,7 @@ export interface Killfeed {
   entries: KillEntry[];
   allyColor: string;
   enemyColor: string;
+  borders: "team" | "tint" | "game"; // team color, a dark hint of it, or the game's near black
 }
 
 export interface Project {
