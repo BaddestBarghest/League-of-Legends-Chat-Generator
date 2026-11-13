@@ -7,7 +7,9 @@ import { bannerImage } from "./imageStore";
 // CommunityDragon. The word is drawn live in Beaufort for LOL Bold so any text
 // works, with colors, edges and shadow measured from Riot's word art.
 
-const ART = "https://raw.communitydragon.org/latest/game/assets/ux/endofgame/";
+// The plaques ship with the site, so the banner works even when the art
+// server is down. They're the game's eog_base and eog_defeat_base files.
+const ART = "art/";
 const W = 512;
 const H = 256;
 const PAD = 36; // room for the shadow when text runs past the plaque
@@ -87,13 +89,11 @@ export interface BannerArt {
   image: HTMLImageElement | null; // the user's own picture
 }
 
-const plaques = new Map<string, Promise<HTMLImageElement | null>>();
 
 export async function loadBannerArt(b: Banner): Promise<BannerArt> {
   const file = LOOKS[b.result].plaque;
-  if (!plaques.has(file)) plaques.set(file, loadImage(ART + file));
   const [plaque, image] = await Promise.all([
-    plaques.get(file)!,
+    loadImage(ART + file),
     b.background === "image" ? bannerImage() : null,
     document.fonts.load(`bold 64px ${FONT_STACK}`).catch(() => []),
   ]);

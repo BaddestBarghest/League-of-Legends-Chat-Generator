@@ -83,7 +83,11 @@ let atlasPromise: Promise<HTMLImageElement | null> | null = null;
 // measured from. A different layout after a patch falls back to drawing.
 function loadAtlas(): Promise<HTMLImageElement | null> {
   atlasPromise ??= loadImage(ATLAS_URL).then((img) => {
-    if (!img || img.naturalWidth !== 2048 || img.naturalHeight !== 512) return null;
+    if (!img) {
+      atlasPromise = null; // try again on the next draw
+      return null;
+    }
+    if (img.naturalWidth !== 2048 || img.naturalHeight !== 512) return null;
     try {
       const c = document.createElement("canvas");
       c.width = 2048;

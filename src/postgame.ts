@@ -52,11 +52,8 @@ export interface PostgameArt {
   images: Images;
 }
 
-const cache = new Map<string, Promise<HTMLImageElement | null>>();
 function image(url: string | undefined): Promise<HTMLImageElement | null> {
-  if (!url) return Promise.resolve(null);
-  if (!cache.has(url)) cache.set(url, loadImage(url));
-  return cache.get(url)!;
+  return url ? loadImage(url) : Promise.resolve(null);
 }
 
 const ICONS = {

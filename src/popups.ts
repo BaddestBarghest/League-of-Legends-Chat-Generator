@@ -18,7 +18,6 @@ export interface PopupArt {
   icons: Map<string, HTMLImageElement | null>;
 }
 
-const gameIcons = new Map<string, Promise<HTMLImageElement | null>>();
 export const customIconKey = (id: string) => `popup:${id}`;
 
 export async function loadPopupArt(popups: Popup[]): Promise<PopupArt> {
@@ -31,9 +30,7 @@ export async function loadPopupArt(popups: Popup[]): Promise<PopupArt> {
         icons.set(customIconKey(p.id), await storedImage(customIconKey(p.id)));
         return;
       }
-      const file = ICONS[p.icon].file;
-      if (!gameIcons.has(file)) gameIcons.set(file, loadImage(ART + file));
-      icons.set(p.icon, await gameIcons.get(file)!);
+      icons.set(p.icon, await loadImage(ART + ICONS[p.icon].file));
     }),
   ]);
   return { icons };

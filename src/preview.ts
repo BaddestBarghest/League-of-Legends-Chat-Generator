@@ -1,3 +1,4 @@
+import { onImageArrived } from "./icons";
 import { getOpenLineId, openLine } from "./editor";
 import { $ } from "./dom";
 import { ensureFont, lineAt, measure, render } from "./render";
@@ -125,6 +126,7 @@ export function mountPreview(): void {
   });
 
   onChange(schedule);
+  onImageArrived(schedule);
   void document.fonts.ready.then(schedule);
   // Reopen the tab that was open last time.
   let last: string | null = null;

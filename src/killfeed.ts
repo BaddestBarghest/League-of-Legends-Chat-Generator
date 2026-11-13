@@ -75,11 +75,7 @@ export interface KillfeedArt {
   images: Map<string, HTMLImageElement | null>;
 }
 
-const cache = new Map<string, Promise<HTMLImageElement | null>>();
-const image = (url: string) => {
-  if (!cache.has(url)) cache.set(url, loadImage(url));
-  return cache.get(url)!;
-};
+const image = loadImage;
 
 // Where a portrait's picture comes from, or null for none.
 function source(p: Portrait, entryId: string, slot: string, players: Player[]): { url?: string; key?: string } | null {
